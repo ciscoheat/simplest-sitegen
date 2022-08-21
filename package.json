@@ -1,14 +1,17 @@
 {
-  "name": "simplest",
-  "version": "1.0.0",
+  "name": "simplest-sitegen",
+  "version": "0.5.0",
   "description": "",
-  "main": "dist/index.js",
+  "bin": {
+    "simplest": "dist/index.js"
+  },
   "type": "module",
   "scripts": {
-    "tsc": "tsc -w",
     "nodemon": "nodemon dist/index.js",
+    "prepublishOnly": "tsc",
     "start": "node dist/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tsc": "tsc -w"
   },
   "keywords": [],
   "author": "",
