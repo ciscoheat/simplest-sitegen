@@ -1,0 +1,29 @@
+:root {
+  --grid-maxWidth: 960px;
+}
+
+.nav-center {
+  flex-wrap: wrap;
+}
+
+main {
+  overflow-wrap: break-word;
+}
+
+blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+blockquote > :first-child {
+  margin-top: 0;
+}
+
+.nav a {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--color-lightGrey);
+}
+
+.nav a.active {
+  border-bottom: 2px solid var(--color-primary);
+}
