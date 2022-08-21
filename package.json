@@ -1,7 +1,11 @@
 {
   "name": "simplest-sitegen",
-  "version": "0.5.1",
-  "description": "",
+  "version": "0.5.2",
+  "author": "Andreas Söderlund <ciscoheat@gmail.com> (https://blog.encodeart.dev)",
+  "description": "The simplest static sitegen there is. Only HTML needed.",
+  "repository": {
+    "url": "https://github.com/ciscoheat/simplest-sitegen"
+  },
   "bin": {
     "simplest": "dist/index.js"
   },
