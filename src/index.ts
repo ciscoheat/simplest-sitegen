@@ -4,9 +4,12 @@ import debug from 'debug'
 import Templator from 'template-html'
 import fg from 'fast-glob'
 import path from 'upath'
+import minimist from 'minimist'
+import sane from 'sane'
 
 import { cacheBust, htmlFiles } from './plugins.js'
 import { cwd } from 'process'
+import { Stats } from 'fs'
 
 type TemplatePlugin = (context : Context, template : string) => Promise<string>
 
@@ -148,7 +151,34 @@ const start = async () => {
     parser
   })
   
-  parseTemplate([cacheBust]).then(templateChanged => parseFiles([htmlFiles], templateChanged))
+  const args = minimist(process.argv.slice(2))
+  const watch = args._.includes('watch')
+
+  // TODO: Configurable plugins
+  const template = () => parseTemplate([cacheBust])
+  const files = (templateChanged : boolean) => parseFiles([htmlFiles], templateChanged)
+
+  const run = async () => {
+    const templateChanged = await template()
+    return files(templateChanged)
+  }
+
+  const runWatch = (filepath : string, root : string, stat : Stats) => {
+    const relativePath = path.relative(path.join(config.input, '..'), path.join(root, filepath))
+    console.log('Update: ' + relativePath)
+    return run()
+  }
+
+  if(!watch) {
+    await fs.remove(config.output)
+  } else {
+    console.log('Watching for file changes in "' + config.input + '"')
+    const watcher = sane(config.input)
+    watcher.on('change', runWatch)
+    watcher.on('add', runWatch)
+  }
+
+  run()
 }
 
 start()
