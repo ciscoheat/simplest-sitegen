@@ -13,9 +13,22 @@ import { Stats } from 'fs'
 
 type TemplatePlugin = (context : Context, template : string) => Promise<string>
 
+interface Rename {
+  file: string
+  content : string | Buffer  
+}
+
+interface Remove {
+  file: 'remove'
+}
+
+interface Keep {
+  file: 'keep'
+}
+
 type FilesPlugin = {
   extensions: string[],
-  parse: (context : Context, file : string) => Promise<string | Buffer>
+  parse: (context : Context, file : string) => Promise<string | Buffer | Rename | Remove | Keep>
 }
 
 type HtmlParser = {
@@ -26,7 +39,8 @@ type HtmlParser = {
 const config = {
   input: "src",
   output: "build",
-  template: "src/template.html"
+  template: "src/template.html",
+  ignoreExtensions: ["sass", "scss", "less"]
 }
 
 const context = {
@@ -55,6 +69,9 @@ const isNewer = (src : string, dest : string) => Promise.all([fs.stat(src), fs.s
     //d(`${path.basename(src)}: output didn't exist`)
     return true
   })
+
+const hasExtension = (exts : string[]) => (input : string) => exts.some(ext => input.endsWith(`.${ext}`))
+const hasntExtension = (exts : string[]) => (input : string) => !exts.some(ext => input.endsWith(`.${ext}`))
 
 ///////////////////////////////////////////////////////////
 
@@ -88,10 +105,12 @@ const parseTemplate = async (plugins : TemplatePlugin[]) => {
 const parseFiles = (async (plugins : FilesPlugin[], templateChanged : boolean) => {
   if(templateChanged) d('Template content changed, unconditional update.')
 
-  const allFiles = await fg(path.join(config.input, `/**/*.*`))
+  const allFiles = new Set(
+    (await fg(path.join(config.input, `/**/*.*`))).filter(hasntExtension(config.ignoreExtensions))
+  )
 
   const parseFiles = async (exts : string[], parse : FilesPlugin['parse']) => {
-    const files = allFiles.filter((f : string) => exts.some((ext : string) => f.endsWith('.' + ext)))
+    const files = Array.from(allFiles).filter(hasExtension(exts))
 
     let queue = files
 
@@ -108,13 +127,27 @@ const parseFiles = (async (plugins : FilesPlugin[], templateChanged : boolean) =
 
   for (const plugin of plugins) {
     const files = await parseFiles(plugin.extensions, plugin.parse)
-    const results = await Promise.allSettled(files.map(f => f.content))
-    
-    for (const [i, result] of results.entries()) {
-      if(result.status != 'fulfilled') continue
 
-      fs.outputFile(outputFile(files[i].file), result.value)
-      allFiles.splice(allFiles.indexOf(files[i].file), 1)
+    for (const parsed of files) {
+      const content = await parsed.content
+      const removeFile = () => allFiles.delete(parsed.file)
+
+      if(typeof content === 'string' || Buffer.isBuffer(content)) {
+        fs.outputFile(outputFile(parsed.file), content)
+        removeFile()
+      }
+
+      switch(parsed.file) {
+        case 'remove':
+          removeFile()
+          break
+        case 'keep':
+          break
+        default:
+          // 'rename'
+          fs.outputFile(parsed.file, content)
+          removeFile()
+      }
     }
   }
 
