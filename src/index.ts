@@ -135,18 +135,14 @@ const parseFiles = (async (plugins : FilesPlugin[], templateChanged : boolean) =
       if(typeof content === 'string' || Buffer.isBuffer(content)) {
         fs.outputFile(outputFile(parsed.file), content)
         removeFile()
-      }
-
-      switch(parsed.file) {
-        case 'remove':
-          removeFile()
-          break
-        case 'keep':
-          break
-        default:
-          // 'rename'
-          fs.outputFile(parsed.file, content)
-          removeFile()
+      } else if(content.file == 'remove') {
+        removeFile()
+      } else if(content.file = 'keep') {
+        // Pass through
+      } else {
+        const c = content as Rename
+        fs.outputFile(outputFile(c.file), c.content)
+        removeFile()
       }
     }
   }
