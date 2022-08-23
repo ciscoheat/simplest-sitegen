@@ -7,7 +7,7 @@ import path from 'upath'
 import minimist from 'minimist'
 import sane from 'sane'
 
-import { cacheBust, htmlFiles } from './plugins.js'
+import { cacheBust, compileSass, htmlFiles } from './plugins.js'
 import { cwd } from 'process'
 import { Stats } from 'fs'
 
@@ -40,7 +40,9 @@ const config = {
   input: "src",
   output: "build",
   template: "src/template.html",
-  ignoreExtensions: ["sass", "scss", "less"]
+  ignoreExtensions: [".sass", ".scss", ".less"],
+  templatePlugins: [] as TemplatePlugin[],
+  filesPlugin: [] as FilesPlugin[]
 }
 
 const context = {
@@ -70,8 +72,8 @@ const isNewer = (src : string, dest : string) => Promise.all([fs.stat(src), fs.s
     return true
   })
 
-const hasExtension = (exts : string[]) => (input : string) => exts.some(ext => input.endsWith(`.${ext}`))
-const hasntExtension = (exts : string[]) => (input : string) => !exts.some(ext => input.endsWith(`.${ext}`))
+const hasExtension = (exts : string[]) => (input : string) => exts.some(ext => input.endsWith(`${ext}`))
+const hasntExtension = (exts : string[]) => (input : string) => !exts.some(ext => input.endsWith(`${ext}`))
 
 ///////////////////////////////////////////////////////////
 
@@ -105,9 +107,7 @@ const parseTemplate = async (plugins : TemplatePlugin[]) => {
 const parseFiles = (async (plugins : FilesPlugin[], templateChanged : boolean) => {
   if(templateChanged) d('Template content changed, unconditional update.')
 
-  const allFiles = new Set(
-    (await fg(path.join(config.input, `/**/*.*`))).filter(hasntExtension(config.ignoreExtensions))
-  )
+  const allFiles = new Set(await fg(path.join(config.input, `/**/*.*`)))
 
   const parseFiles = async (exts : string[], parse : FilesPlugin['parse']) => {
     const files = Array.from(allFiles).filter(hasExtension(exts))
@@ -137,7 +137,7 @@ const parseFiles = (async (plugins : FilesPlugin[], templateChanged : boolean) =
         removeFile()
       } else if(content.file == 'remove') {
         removeFile()
-      } else if(content.file = 'keep') {
+      } else if(content.file == 'keep') {
         // Pass through
       } else {
         const c = content as Rename
@@ -148,7 +148,7 @@ const parseFiles = (async (plugins : FilesPlugin[], templateChanged : boolean) =
   }
 
   // Copy the remaining files
-  for (const file of allFiles) {
+  for (const file of [...allFiles].filter(hasntExtension(config.ignoreExtensions))) {
     const output = outputFile(file)
     if(!await isNewer(file, output)) continue
     fs.outputFile(output, await fs.readFile(file))
@@ -183,9 +183,8 @@ const start = async () => {
   const args = minimist(process.argv.slice(2))
   const watch = args._.includes('watch')
 
-  // TODO: Configurable plugins
-  const template = () => parseTemplate([cacheBust])
-  const files = (templateChanged : boolean) => parseFiles([htmlFiles], templateChanged)
+  const template = () => parseTemplate(config.templatePlugins.concat([cacheBust]))
+  const files = (templateChanged : boolean) => parseFiles(config.filesPlugin.concat([compileSass, htmlFiles]), templateChanged)
 
   const run = async () => {
     const templateChanged = await template()

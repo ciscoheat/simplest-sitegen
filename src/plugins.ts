@@ -1,6 +1,7 @@
 import path from 'upath'
 import fs from 'fs-extra'
 import { parse } from 'node-html-parser'
+import sass from 'sass'
 
 import { hash } from './utils.js'
 import { type Context } from './index.js'
@@ -46,12 +47,24 @@ export const cacheBust = async (context : Context, template : string) => {
 }
 
 export const htmlFiles = {
-  extensions: ['html', 'htm'],
+  extensions: ['.html', '.htm'],
   parse: async (context : Context, file : string) => {
     const content = await fs.readFile(file)
 
     return content.includes('<!-- build:content -->')
       ? context.parser.processContent(content.toString('utf8'))
       : content
+  }
+}
+
+export const compileSass = {
+  extensions: ['.sass', '.scss'],
+  parse: async (context : Context, file : string) => {
+    const content = sass.compile(file)
+
+    return {
+      file: path.changeExt(file, 'css'),
+      content: content.css
+    }
   }
 }

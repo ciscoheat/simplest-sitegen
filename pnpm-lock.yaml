@@ -18,6 +18,7 @@ specifiers:
   node-html-parser: 5.4.2-0
   nodemon: ^2.0.19
   sane: ^5.0.1
+  sass: ^1.54.5
   template-html: ^0.3.2
   ts-node: ^10.9.1
   typescript: ^4.7.4
@@ -45,6 +46,7 @@ devDependencies:
   diff: 5.1.0
   dir-compare: 4.0.0
   nodemon: 2.0.19
+  sass: 1.54.5
   ts-node: 10.9.1_itmtyrrie7wpjnrpwbb5uqyzwa
   typescript: 4.7.4
 
@@ -486,6 +488,10 @@ packages:
     resolution: {integrity: sha512-Ius2VYcGNk7T90CppJqcIkS5ooHUZyIQK+ClZfMfMNFEF9VSE73Fq+906u/CWu92x4gzZMWOwfFYckPObzdEbA==}
     dev: true
 
+  /immutable/4.1.0:
+    resolution: {integrity: sha512-oNkuqVTA8jqG1Q6c+UglTOD1xhC1BtjKI7XkCXRkZHrN5m18/XsnUp8Q89GkQO/z+0WjonSvl0FLhDYftp46nQ==}
+    dev: true
+
   /is-binary-path/2.1.0:
     resolution: {integrity: sha512-ZMERYes6pDydyuGidse7OsHxtbI7WVeUEozgR/g7rd0xUimYNlvZRE/K2MgZTjWy725IfelLeVcEM97mmtRGXw==}
     engines: {node: '>=8'}
@@ -716,6 +722,16 @@ packages:
       walker: 1.0.8
     dev: false
 
+  /sass/1.54.5:
+    resolution: {integrity: sha512-p7DTOzxkUPa/63FU0R3KApkRHwcVZYC0PLnLm5iyZACyp15qSi32x7zVUhRdABAATmkALqgGrjCJAcWvobmhHw==}
+    engines: {node: '>=12.0.0'}
+    hasBin: true
+    dependencies:
+      chokidar: 3.5.3
+      immutable: 4.1.0
+      source-map-js: 1.0.2
+    dev: true
+
   /semver/5.7.1:
     resolution: {integrity: sha512-sauaDf/PZdVgrLTNYHRtpXa1iRiKcaebiKQ1BJdpQlWH2lCvexQdX55snPFyK7QzpudqbCI0qXFfOasHdyNDGQ==}
     hasBin: true
@@ -747,6 +763,11 @@ packages:
     engines: {node: '>=8.10.0'}
     dependencies:
       semver: 7.0.0
+    dev: true
+
+  /source-map-js/1.0.2:
+    resolution: {integrity: sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==}
+    engines: {node: '>=0.10.0'}
     dev: true
 
   /strip-final-newline/2.0.0:

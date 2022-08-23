@@ -1,25 +1,13 @@
 {
   "configurations": [
-    
     {
-      "type": "node",
-      "name": "vscode-jest-tests.v2",
+      "name": "Debug simplest",
+      "program": "${workspaceFolder}/dist/index.js",
       "request": "launch",
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "cwd": "${workspaceFolder}",
-      "runtimeExecutable": "npm",
-      "args": [
-        "run",
-        "test",
-        "--",
-        "--runInBand",
-        "--watchAll=false",
-        "--testNamePattern",
-        "${jest.testNamePattern}",
-        "--runTestsByPath",
-        "${jest.testFile}"
-      ]
-    }
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "node"
+    },
   ]
 }

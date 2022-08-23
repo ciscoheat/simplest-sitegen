@@ -17,25 +17,30 @@ const run = (command : string, okMsg = '') => new Promise<void>((res, rej) =>
 
 ;(async () => {
   await run('npm run start')
-  const result = await dircompare.compare("build", "expected", {compareContent: true})
+  const result = await dircompare.compare("expected", "build", {compareContent: true})
   if(!result.same) {
     console.log(ansi.red('  Test failure'))
     console.log(ansi.yellow('  ' + result.differences + " difference(s):") + "\n")
 
-    const notEqual = result.diffSet!.filter(r => r.state != 'equal')
-      .forEach(r => {
-        const test = path.join(r.path1, r.name1)
-        const expected = path.join(r.path2, r.name2)
+    const diffs = result.diffSet!.filter(r => r.state == 'distinct')
+    const problems = result.diffSet!.filter(r => r.state != 'equal' && r.state != 'distinct')
 
-        const result = createTwoFilesPatch(
-          expected, test,
-          fs.readFileSync(test, {encoding: 'utf-8'}), 
-          fs.readFileSync(expected, {encoding: 'utf-8'}),
-          undefined, undefined,
-          { context: 0 }
-        )
-        console.log(colorize(result))
-      })
+    diffs.forEach(r => {
+      const test = path.join(r.path1, r.name1)
+      const expected = path.join(r.path2, r.name2)
+
+      const result = createTwoFilesPatch(
+        expected, test,
+        fs.readFileSync(test, {encoding: 'utf-8'}), 
+        fs.readFileSync(expected, {encoding: 'utf-8'}),
+        undefined, undefined,
+        { context: 0 }
+      )
+      console.log(colorize(result))
+    })
+
+    console.log("====================================================================")
+    console.log(problems)
 
     process.exitCode = 1
   } else {
