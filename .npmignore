@@ -1,5 +1,8 @@
-node_modules
 build
-dist
+dist/test.*
+expected
+node_modules
 site
+src
 simplest.config.js
+tsconfig.json

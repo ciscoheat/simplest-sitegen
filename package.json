@@ -14,6 +14,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "nodemon -e \"js,css,html,sass\" -w dist -w expected -x \"npm run test\"",
+    "server": "http-server -c-1 build",
     "prepublishOnly": "tsc",
     "start": "node dist/cli.js",
     "test": "node dist/test.js",

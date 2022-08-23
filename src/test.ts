@@ -9,6 +9,7 @@ import colorize from '@npmcli/disparity-colors'
 import { simplest } from './index.js'
 
 ;(async () => {
+  await fs.emptyDir("build")
   await simplest()
   const result = await dircompare.compare("expected", "build", {compareContent: true})
   if(!result.same) {
@@ -32,8 +33,10 @@ import { simplest } from './index.js'
       console.log(colorize(result))
     })
 
-    console.log("====================================================================")
-    console.log(problems)
+    if(problems.length) {
+      console.log("====================================================================")
+      console.log(problems)
+    }
 
     process.exitCode = 1
   } else {

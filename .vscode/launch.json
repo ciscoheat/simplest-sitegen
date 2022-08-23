@@ -9,5 +9,15 @@
       ],
       "type": "node"
     },
+    {
+      "name": "Debug simplestWatch",
+      "program": "${workspaceFolder}/dist/cli.js",
+      "args": ["watch"],
+      "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "node"
+    }
   ]
 }

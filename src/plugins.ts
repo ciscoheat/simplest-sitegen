@@ -24,24 +24,21 @@ const srcScripts = (root : ReturnType<typeof parse>, selector : string, attr : s
 export const cacheBust = async (context : Context, template : string) => {
   const root = parse(template, {comment: true})
   const scriptFiles = cssScripts(root).concat(jsScripts(root))
-
-  const content = await Promise.allSettled(scriptFiles
     .filter(f => !isAbsolute(f.file))
-    .map(script => {
-        const inputPath = path.join(context.config.input, script.file)
-        return fs.readFile(inputPath).catch(() => {
-          // Test if output exists instead of input
-          const outputPath = path.join(context.config.output, script.file)
-          return fs.readFile(outputPath)
-      })
-    })
-  )
 
-  content.forEach((res, i) => {
-    if(res.status != 'fulfilled') return
-    const {el, attr, file} = scriptFiles[i]
-    el.setAttribute(attr, file + '?' + hash(res.value))
-  })
+  for (const {el, attr, file} of scriptFiles) {
+    const inputPath = path.join(context.config.input, file)
+    try {
+      const content = await fs.readFile(inputPath).catch(() => {
+        // Test if output exists instead of input
+        const outputPath = path.join(context.config.output, file)
+        return fs.readFile(outputPath)
+      })
+      el.setAttribute(attr, file + '?' + hash(content))
+    } catch (e) {
+      console.log('Warning: ' + file + ' not found, referenced in ' + context.config.template)
+    }
+  }
 
   return root.toString()
 }

@@ -109,7 +109,6 @@ const start = async (config2? : Partial<Config>, watch = false) => {
   const parseTemplate = async (plugins : TemplatePlugin[]) => {
     const {output, template} = config
 
-    
     const templateOutputFile = path.join(output, path.basename(template))
     const templateChanged = await isNewer(template, templateOutputFile)
 
@@ -135,8 +134,6 @@ const start = async (config2? : Partial<Config>, watch = false) => {
   }
 
   const parseFiles = (async (plugins : FilesPlugin[], templateChanged : boolean) => {
-    if(templateChanged) d('Template content changed, unconditional update.')
-
     const allFiles = new Set(await fg(path.join(config.input, `/**/*.*`)))
 
     const parseFiles = async (exts : string[], parse : FilesPlugin['parse']) => {
@@ -187,17 +184,14 @@ const start = async (config2? : Partial<Config>, watch = false) => {
   
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  const template = () => parseTemplate(config.templatePlugins.concat([compileSass, cacheBust]))
-  const files = (templateChanged : boolean) => parseFiles(config.filesPlugin.concat([htmlFiles]), templateChanged)
-
   const run = async () => {
-    const templateChanged = await template()
-    return files(templateChanged)
+    const templateChanged = await parseTemplate(config.templatePlugins.concat([compileSass, cacheBust]))
+    return parseFiles(config.filesPlugin.concat([htmlFiles]), templateChanged)
   }
 
   const runWatch = (filepath : string, root : string, stat : Stats) => {
     const relativePath = path.relative(path.join(config.input, '..'), path.join(root, filepath))
-    console.log('Update: ' + relativePath)
+    console.log('Updated: ' + relativePath)
     return run()
   }
 
