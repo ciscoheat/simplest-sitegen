@@ -5,7 +5,6 @@ import Templator from 'template-html'
 import fg from 'fast-glob'
 import path from 'upath'
 import minimist from 'minimist'
-import sane from 'sane'
 
 import { cacheBust, compileSass, htmlFiles } from './plugins.js'
 import { cwd } from 'process'
@@ -63,7 +62,7 @@ const outputFile = (file : string) => path.join(config.output, file.slice(config
 
 const isNewer = (src : string, dest : string) => Promise.all([fs.stat(src), fs.stat(dest)])
   .then(([src1, dest1]) => {
-    const output = src1.mtimeMs > dest1.mtimeMs
+    const output : boolean = src1.mtimeMs > dest1.mtimeMs
     //d(`${path.basename(src)}: ${output ? 'newer than output' : 'NOT newer than output'}`)
     return output
   })
@@ -201,7 +200,8 @@ const start = async () => {
     await fs.remove(config.output)
   } else {
     console.log('Watching for file changes in "' + config.input + '"')
-    const watcher = sane(config.input)
+    const sane = await import('sane')
+    const watcher = sane.default(config.input)
     watcher.on('change', runWatch)
     watcher.on('add', runWatch)
   }

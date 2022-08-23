@@ -1,10 +1,10 @@
 import path from 'upath'
 import fs from 'fs-extra'
 import { parse } from 'node-html-parser'
-import sass from 'sass'
 
 import { hash } from './utils.js'
 import { type Context } from './index.js'
+import { compile } from 'sass'
 
 interface ParsedElement {
   attributes: Record<string, string>
@@ -57,10 +57,13 @@ export const htmlFiles = {
   }
 }
 
+let sass : typeof compile
+
 export const compileSass = {
   extensions: ['.sass', '.scss'],
   parse: async (context : Context, file : string) => {
-    const content = sass.compile(file)
+    if(!sass) sass = (await import('sass')).default.compile
+    const content = sass(file)
 
     return {
       file: path.changeExt(file, 'css'),
