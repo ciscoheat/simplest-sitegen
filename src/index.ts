@@ -5,6 +5,7 @@ import Templator from 'template-html'
 import fg from 'fast-glob'
 import path from 'upath'
 import minimist from 'minimist'
+import sane from 'sane'
 
 import { cacheBust, compileSass, htmlFiles } from './plugins.js'
 import { cwd } from 'process'
@@ -35,132 +36,38 @@ type HtmlParser = {
   processContent(content : string) : string
 }
 
-const config = {
-  input: "src",
-  output: "build",
-  template: "src/template.html",
-  ignoreExtensions: [".sass", ".scss", ".less"],
+const defaultConfig = {
+  input: "src" as string,
+  output: "build" as string,
+  template: "src/template.html" as string,
+  ignoreExtensions: [".sass", ".scss", ".less"] as string[],
   templatePlugins: [] as TemplatePlugin[],
   filesPlugin: [] as FilesPlugin[]
 }
 
-const context = {
-  config,
-  parser: null! // It will be set in start
-} as {
-  config: typeof config,
+export type Config = typeof defaultConfig
+
+export type Context = {
+  config: Config,
   parser: HtmlParser
 }
-
-export type Context = typeof context
 
 /////////////////////////////////////////////////////////////////////
 
 const d = debug('simplest')
 
-const outputFile = (file : string) => path.join(config.output, file.slice(config.input.length))
-
-const isNewer = (src : string, dest : string) => Promise.all([fs.stat(src), fs.stat(dest)])
-  .then(([src1, dest1]) => {
-    const output : boolean = src1.mtimeMs > dest1.mtimeMs
-    //d(`${path.basename(src)}: ${output ? 'newer than output' : 'NOT newer than output'}`)
-    return output
-  })
-  .catch(e => { 
-    //d(`${path.basename(src)}: output didn't exist`)
-    return true
-  })
-
-const hasExtension = (exts : string[]) => (input : string) => exts.some(ext => input.endsWith(`${ext}`))
-const hasntExtension = (exts : string[]) => (input : string) => !exts.some(ext => input.endsWith(`${ext}`))
-
-///////////////////////////////////////////////////////////
-
-const parseTemplate = async (plugins : TemplatePlugin[]) => {
-  const {output, template} = config
-
-  const templateOutputFile = path.join(output, path.basename(template))
-  const templateChanged = await isNewer(template, templateOutputFile)
-
-  let templateContent = context.parser.template
-  for (const plugin of plugins) {
-    templateContent = await plugin(context, templateContent)
-  }
-  context.parser.template = templateContent
-
-  if(templateChanged) {
-    fs.outputFile(templateOutputFile, templateContent)
-    return true
-  }
-
-  const currentTemplate = await fs.readFile(templateOutputFile, {encoding: 'utf8'})
-
-  if(currentTemplate != templateContent) {
-    fs.outputFile(templateOutputFile, templateContent)
-    return true
-  }
-
-  return false
-}
-
-const parseFiles = (async (plugins : FilesPlugin[], templateChanged : boolean) => {
-  if(templateChanged) d('Template content changed, unconditional update.')
-
-  const allFiles = new Set(await fg(path.join(config.input, `/**/*.*`)))
-
-  const parseFiles = async (exts : string[], parse : FilesPlugin['parse']) => {
-    const files = Array.from(allFiles).filter(hasExtension(exts))
-
-    let queue = files
-
-    if(!templateChanged) {
-      const newer = await Promise.all(files.map((file : string) => isNewer(file, outputFile(file))))
-      queue = files.filter((file : string, i : number) => newer[i])
-    }
-
-    return queue.map((f : string) => ({
-      file: f,
-      content: parse(context, f)
-    }))
-  }
-
-  for (const plugin of plugins) {
-    const files = await parseFiles(plugin.extensions, plugin.parse)
-
-    for (const parsed of files) {
-      const content = await parsed.content
-      const removeFile = () => allFiles.delete(parsed.file)
-
-      if(typeof content === 'string' || Buffer.isBuffer(content)) {
-        fs.outputFile(outputFile(parsed.file), content)
-        removeFile()
-      } else if(content.file == 'remove') {
-        removeFile()
-      } else if(content.file == 'keep') {
-        // Pass through
-      } else {
-        const c = content as Rename
-        fs.outputFile(outputFile(c.file), c.content)
-        removeFile()
-      }
-    }
-  }
-
-  // Copy the remaining files
-  for (const file of [...allFiles].filter(hasntExtension(config.ignoreExtensions))) {
-    const output = outputFile(file)
-    if(!await isNewer(file, output)) continue
-    fs.outputFile(output, await fs.readFile(file))
-  }
-})
-
 /////////////////////////////////////////////////////////////////////
 
-const start = async () => {
+const start = async (config2? : Partial<Config>, watch = false) => {
+  const config = Object.assign({}, defaultConfig)
+
   try {
     const userConfig = await import('file:///' + path.join(cwd(), 'simplest.config.js'))
     Object.assign(config, userConfig.default)
   } catch (e) {}
+
+  if(config2)
+    Object.assign(config, config2)
 
   try {
     // Sanity checks
@@ -174,16 +81,114 @@ const start = async () => {
     templateFile: config.template
   }) as HtmlParser
 
-  Object.assign(context, {
+  const context = {
     config,
     parser
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  const outputFile = (file : string) => path.join(config.output, file.slice(config.input.length))
+
+  const isNewer = (src : string, dest : string) => Promise.all([fs.stat(src), fs.stat(dest)])
+    .then(([src1, dest1]) => {
+      const output : boolean = src1.mtimeMs > dest1.mtimeMs
+      //d(`${path.basename(src)}: ${output ? 'newer than output' : 'NOT newer than output'}`)
+      return output
+    })
+    .catch(e => { 
+      //d(`${path.basename(src)}: output didn't exist`)
+      return true
+    })
+
+  const hasExtension = (exts : string[]) => (input : string) => exts.some(ext => input.endsWith(`${ext}`))
+  const hasntExtension = (exts : string[]) => (input : string) => !exts.some(ext => input.endsWith(`${ext}`))
+
+  ///////////////////////////////////////////////////////////
+
+  const parseTemplate = async (plugins : TemplatePlugin[]) => {
+    const {output, template} = config
+
+    
+    const templateOutputFile = path.join(output, path.basename(template))
+    const templateChanged = await isNewer(template, templateOutputFile)
+
+    let templateContent = context.parser.template
+    for (const plugin of plugins) {
+      templateContent = await plugin(context, templateContent)
+    }
+    context.parser.template = templateContent
+
+    if(templateChanged) {
+      fs.outputFile(templateOutputFile, templateContent)
+      return true
+    }
+
+    const currentTemplate = await fs.readFile(templateOutputFile, {encoding: 'utf8'})
+
+    if(currentTemplate != templateContent) {
+      fs.outputFile(templateOutputFile, templateContent)
+      return true
+    }
+
+    return false
+  }
+
+  const parseFiles = (async (plugins : FilesPlugin[], templateChanged : boolean) => {
+    if(templateChanged) d('Template content changed, unconditional update.')
+
+    const allFiles = new Set(await fg(path.join(config.input, `/**/*.*`)))
+
+    const parseFiles = async (exts : string[], parse : FilesPlugin['parse']) => {
+      const files = Array.from(allFiles).filter(hasExtension(exts))
+
+      let queue = files
+
+      if(!templateChanged) {
+        const newer = await Promise.all(files.map((file : string) => isNewer(file, outputFile(file))))
+        queue = files.filter((file : string, i : number) => newer[i])
+      }
+
+      return queue.map((f : string) => ({
+        file: f,
+        content: parse(context, f)
+      }))
+    }
+
+    for (const plugin of plugins) {
+      const files = await parseFiles(plugin.extensions, plugin.parse)
+
+      for (const parsed of files) {
+        const content = await parsed.content
+        const removeFile = () => allFiles.delete(parsed.file)
+
+        if(typeof content === 'string' || Buffer.isBuffer(content)) {
+          fs.outputFile(outputFile(parsed.file), content)
+          removeFile()
+        } else if(content.file == 'remove') {
+          removeFile()
+        } else if(content.file == 'keep') {
+          // Pass through
+        } else {
+          const c = content as Rename
+          fs.outputFile(outputFile(c.file), c.content)
+          removeFile()
+        }
+      }
+    }
+
+    // Copy the remaining files
+    for (const file of [...allFiles].filter(hasntExtension(config.ignoreExtensions))) {
+      const output = outputFile(file)
+      if(!await isNewer(file, output)) continue
+      fs.outputFile(output, await fs.readFile(file))
+    }
   })
   
-  const args = minimist(process.argv.slice(2))
-  const watch = args._.includes('watch')
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  const template = () => parseTemplate(config.templatePlugins.concat([cacheBust]))
-  const files = (templateChanged : boolean) => parseFiles(config.filesPlugin.concat([compileSass, htmlFiles]), templateChanged)
+  const template = () => parseTemplate(config.templatePlugins.concat([compileSass, cacheBust]))
+  const files = (templateChanged : boolean) => parseFiles(config.filesPlugin.concat([htmlFiles]), templateChanged)
 
   const run = async () => {
     const templateChanged = await template()
@@ -206,7 +211,8 @@ const start = async () => {
     watcher.on('add', runWatch)
   }
 
-  run()
+  return run()
 }
 
-start()
+export const simplest = (config? : Config) => start(config)
+export const simplestWatch = (config? : Config) => start(config, true)

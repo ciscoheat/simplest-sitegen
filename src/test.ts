@@ -1,4 +1,3 @@
-import { exec } from 'child_process'
 import dircompare from 'dir-compare'
 import ansi from 'ansi-colors'
 import { createTwoFilesPatch } from 'diff'
@@ -7,16 +6,10 @@ import fs from 'fs-extra'
 // @ts-ignore
 import colorize from '@npmcli/disparity-colors'
 
-const run = (command : string, okMsg = '') => new Promise<void>((res, rej) =>
-  exec(command, err => {
-    if(err) return rej(err)
-    if(okMsg) console.log(okMsg)
-    res()
-  })
-)
+import { simplest } from './index.js'
 
 ;(async () => {
-  await run('npm run start')
+  await simplest()
   const result = await dircompare.compare("expected", "build", {compareContent: true})
   if(!result.same) {
     console.log(ansi.red('  Test failure'))

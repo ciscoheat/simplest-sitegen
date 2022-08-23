@@ -2,7 +2,7 @@
   "configurations": [
     {
       "name": "Debug simplest",
-      "program": "${workspaceFolder}/dist/index.js",
+      "program": "${workspaceFolder}/dist/cli.js",
       "request": "launch",
       "skipFiles": [
         "<node_internals>/**"
