@@ -2,6 +2,7 @@ import path from 'upath'
 import fs from 'fs-extra'
 import { parse, type HTMLElement } from 'node-html-parser'
 import { compile } from 'sass'
+import c from 'ansi-colors'
 
 import { type Context } from './index.js'
 import { hash } from './utils.js'
@@ -21,6 +22,8 @@ const srcScripts = (root : ReturnType<typeof parse>, selector : string, attr : s
     })) as {el: HTMLElement, attr: string, file: string}[]
 }
 
+/////////////////////////////////////////////////////////////////////
+
 export const cacheBust = async (context : Context, template : string) => {
   const root = parse(template, {comment: true})
   const scriptFiles = cssScripts(root).concat(jsScripts(root))
@@ -36,12 +39,15 @@ export const cacheBust = async (context : Context, template : string) => {
       })
       el.setAttribute(attr, file + '?' + hash(content))
     } catch (e) {
-      console.log('Warning: ' + file + ' not found, referenced in ' + context.config.template)
+      const msg = 'Warning: ' + file + ' not found, referenced in ' + context.config.template
+      console.log(process.stdout.isTTY ? c.red(msg) : msg)
     }
   }
 
   return root.toString()
 }
+
+/////////////////////////////////////////////////////////////////////
 
 let sass : typeof compile
 
@@ -70,10 +76,10 @@ export const compileSass = async (context : Context, template : string) => {
 export const htmlFiles = {
   extensions: ['.html', '.htm'],
   parse: async (context : Context, file : string) => {
-    const content = await fs.readFile(file)
+    const content = await fs.readFile(file, {encoding: 'utf8'})
 
-    return content.includes('<!-- build:content -->')
-      ? context.parser.processContent(content.toString('utf8'))
+    return content.includes('<!-- /build:content -->')
+      ? context.parser.processContent(content)
       : content
   }
 }

@@ -6,11 +6,11 @@ import fs from 'fs-extra'
 // @ts-ignore
 import colorize from '@npmcli/disparity-colors'
 
-import { simplest } from './index.js'
+import { simplestBuild } from './index.js'
 
 ;(async () => {
   await fs.emptyDir("build")
-  await simplest()
+  await simplestBuild()
   const result = await dircompare.compare("expected", "build", {compareContent: true})
   if(!result.same) {
     console.log(ansi.red('  Test failure'))

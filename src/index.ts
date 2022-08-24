@@ -4,14 +4,16 @@ import debug from 'debug'
 import Templator from 'template-html'
 import fg from 'fast-glob'
 import path from 'upath'
-import minimist from 'minimist'
-import sane from 'sane'
 
 import { cacheBust, compileSass, htmlFiles } from './plugins.js'
 import { cwd } from 'process'
 import { Stats } from 'fs'
+import { spawn } from 'cross-spawn'
+import c from 'ansi-colors'
 
 type TemplatePlugin = (context : Context, template : string) => Promise<string>
+
+type Mode = 'build' | 'dev' | 'watch'
 
 interface Rename {
   file: string
@@ -42,7 +44,8 @@ const defaultConfig = {
   template: "src/template.html" as string,
   ignoreExtensions: [".sass", ".scss", ".less"] as string[],
   templatePlugins: [] as TemplatePlugin[],
-  filesPlugin: [] as FilesPlugin[]
+  filesPlugin: [] as FilesPlugin[],
+  devServerOptions: '' as string
 }
 
 export type Config = typeof defaultConfig
@@ -58,7 +61,7 @@ const d = debug('simplest')
 
 /////////////////////////////////////////////////////////////////////
 
-const start = async (config2? : Partial<Config>, watch = false) => {
+const start = async (mode : Mode, config2? : Partial<Config>) => {
   const config = Object.assign({}, defaultConfig)
 
   try {
@@ -80,6 +83,8 @@ const start = async (config2? : Partial<Config>, watch = false) => {
     preserveTree: true,
     templateFile: config.template
   }) as HtmlParser
+
+  const originalTemplate = parser.template
 
   const context = {
     config,
@@ -112,21 +117,24 @@ const start = async (config2? : Partial<Config>, watch = false) => {
     const templateOutputFile = path.join(output, path.basename(template))
     const templateChanged = await isNewer(template, templateOutputFile)
 
-    let templateContent = context.parser.template
+    let templateContent = originalTemplate
     for (const plugin of plugins) {
       templateContent = await plugin(context, templateContent)
     }
     context.parser.template = templateContent
 
     if(templateChanged) {
-      fs.outputFile(templateOutputFile, templateContent)
+      await fs.outputFile(templateOutputFile, templateContent)
       return true
     }
 
-    const currentTemplate = await fs.readFile(templateOutputFile, {encoding: 'utf8'})
+    let currentTemplate = null
+    try {
+      currentTemplate = await fs.readFile(templateOutputFile, {encoding: 'utf8'})
+    } catch(e) {}
 
     if(currentTemplate != templateContent) {
-      fs.outputFile(templateOutputFile, templateContent)
+      await fs.outputFile(templateOutputFile, templateContent)
       return true
     }
 
@@ -135,6 +143,9 @@ const start = async (config2? : Partial<Config>, watch = false) => {
 
   const parseFiles = (async (plugins : FilesPlugin[], templateChanged : boolean) => {
     const allFiles = new Set(await fg(path.join(config.input, `/**/*.*`)))
+    // Prevent template from being parsed, since it has already been parsed in its own plugins.
+    // This also makes it cacheable, because otherwise it would be overwritten here.
+    allFiles.delete(config.template)
 
     const parseFiles = async (exts : string[], parse : FilesPlugin['parse']) => {
       const files = Array.from(allFiles).filter(hasExtension(exts))
@@ -189,24 +200,39 @@ const start = async (config2? : Partial<Config>, watch = false) => {
     return parseFiles(config.filesPlugin.concat([htmlFiles]), templateChanged)
   }
 
-  const runWatch = (filepath : string, root : string, stat : Stats) => {
-    const relativePath = path.relative(path.join(config.input, '..'), path.join(root, filepath))
-    console.log('Updated: ' + relativePath)
-    return run()
-  }
+  switch(mode) {
+    case 'build':
+      await fs.remove(config.output)
+      return run()
+      
+    case 'dev':
+      const options = `--server "${config.output}" --files "${config.output}" ` + (config.devServerOptions ? config.devServerOptions : '--no-ui --no-notify')
 
-  if(!watch) {
-    await fs.remove(config.output)
-  } else {
-    console.log('Watching for file changes in "' + config.input + '"')
-    const sane = await import('sane')
-    const watcher = sane.default(config.input)
-    watcher.on('change', runWatch)
-    watcher.on('add', runWatch)
-  }
+      spawn(`npx browser-sync start ${options}`, [], {
+        shell: true,
+        stdio: 'inherit'
+      })
 
-  return run()
+    case 'watch':
+      const runWatch = (filepath : string, root : string, stat : Stats) => {
+        const relativePath = path.relative(path.join(config.input, '..'), path.join(root, filepath))
+        console.log('Updated: ' + relativePath)
+        return run()
+      }
+    
+      console.log(c.yellow('Watching for file changes in ') + c.bold.blue(config.input))
+      const sane = await import('sane')
+      const watcher = sane.default(config.input)
+      watcher.on('change', runWatch)
+      watcher.on('add', runWatch)
+      watcher.on('delete', (file, root) => {
+        console.log(file)
+        console.log(root)
+      })
+      return run()
+  }
 }
 
-export const simplest = (config? : Config) => start(config)
-export const simplestWatch = (config? : Config) => start(config, true)
+export const simplestBuild = (config? : Config) => start('build', config)
+export const simplestWatch = (config? : Config) => start('watch', config)
+export const simplestDev = (config? : Config) => start('dev', config)

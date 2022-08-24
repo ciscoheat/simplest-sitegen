@@ -4,6 +4,7 @@
       "name": "Debug simplest",
       "program": "${workspaceFolder}/dist/cli.js",
       "request": "launch",
+      "args": ["build"],
       "skipFiles": [
         "<node_internals>/**"
       ],
