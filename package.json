@@ -1,6 +1,6 @@
 {
   "name": "simplest-sitegen",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "author": "",
   "description": "The simplest static sitegen there is. Build a modern, fully working website with only HTML.",
   "repository": {
@@ -22,6 +22,8 @@
   "keywords": [],
   "license": "MIT",
   "dependencies": {
+    "ansi-colors": "^4.1.3",
+    "browser-sync": ">=2",
     "cross-spawn": "^7.0.3",
     "debug": "^4.3.4",
     "fast-glob": "^3.2.11",
@@ -33,7 +35,6 @@
     "upath": "^2.0.1"
   },
   "devDependencies": {
-    "browser-sync": ">=2",
     "@npmcli/disparity-colors": "^2.0.0",
     "@types/cross-spawn": "^6.0.2",
     "@types/debug": "^4.1.7",
@@ -42,7 +43,6 @@
     "@types/minimist": "^1.2.2",
     "@types/node": "^18.7.8",
     "@types/sane": "^2.0.1",
-    "ansi-colors": "^4.1.3",
     "diff": "^5.1.0",
     "dir-compare": "^4.0.0",
     "sass": "^1.54.5",
