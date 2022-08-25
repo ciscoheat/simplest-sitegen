@@ -14,11 +14,11 @@ Introducing **simplest**. It's true, it really is the simplest static sitegen. O
 mkdir new-project
 cd new-project
 npm init es6
-npm install simplest-sitegen
+npm i simplest-sitegen
 mkdir src
 ```
 
-([pnpm](https://pnpm.io/) is recommended instead of npm though)
+The `npm init es6` is for `"type": "module"` to be included in the `package.json` file. You can add that line manually and use the normal `npm init` if you want. ([pnpm](https://pnpm.io/) is recommended instead of npm though!)
 
 ## No scaffolding except one file: `src/template.html`
 
@@ -75,7 +75,13 @@ This will generate your brand new site in the `build` directory, that can be upl
 
 ## It has a Dev server, of course
 
-We're not done just yet: I'm sure you feel the need for a near-real time hot-reloading supercharged experience when developing your site. It's one of the simplest to use:
+We're not done just yet: I'm sure you feel the need for a near-real time hot-reloading supercharged experience when developing your site. It's one of the simplest to use. First install a package:
+
+```
+npm i browser-sync
+```
+
+Then you start the dev server with a simple:
 
 ```
 npx simplest
@@ -83,15 +89,13 @@ npx simplest
 
 This will start a [Browsersync](https://browsersync.io/) server, and open up a browser window for you. Any changes in `src` will update the browser automatically.
 
-In case the dev server doesn't work straight away, `npm install browser-sync` should fix it.
-
 ## Cache busting included
 
 All non-absolute links and scripts, for example the one in `<link rel="stylesheet" href="/style.css">`, will be automatically cache-busted based on its content, so you don't have to worry about serving old scripts and styles.
 
 ## Sass compilation included as well
 
-with a simple `(p)npm install sass`, you can now use [Sass](https://sass-lang.com/) instead of css in your website. It's a ridiculously simple drop-in replacement:
+with a simple `(p)npm i sass`, you can now use [Sass](https://sass-lang.com/) instead of css in your website. It's a ridiculously simple drop-in replacement:
 
 ```html
 <link rel="stylesheet" href="/style.scss">
@@ -99,7 +103,7 @@ with a simple `(p)npm install sass`, you can now use [Sass](https://sass-lang.co
 
 ## Configuration
 
-If you need to complicate things, it's understandable, things aren't always as simple as one would like. Fortunately, it's not too hard to configure simplest. Create a `simplest.config.js` file in your project top directory (above `src`), with any of the following properties:
+If you need to complicate things, it's understandable, things aren't always as simple as one would like. Fortunately it's not too hard to configure simplest. Create a `simplest.config.js` file in your project top directory (above `src`), with any of the following properties:
 
 ```js
 export default {
