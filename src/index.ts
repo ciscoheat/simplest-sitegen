@@ -214,9 +214,8 @@ const start = async (mode : Mode, config2? : Partial<Config>) => {
       })
 
     case 'watch':
-      const runWatch = (filepath : string, root : string, stat : Stats) => {
-        const relativePath = path.relative(path.join(config.input, '..'), path.join(root, filepath))
-        console.log('Updated: ' + relativePath)
+      const runWatch = (file : string, root : string, stat : Stats) => {
+        console.log('Updated: ' + file)
         return run()
       }
     
@@ -225,9 +224,9 @@ const start = async (mode : Mode, config2? : Partial<Config>) => {
       const watcher = sane.default(config.input)
       watcher.on('change', runWatch)
       watcher.on('add', runWatch)
-      watcher.on('delete', (file, root) => {
-        console.log(file)
-        console.log(root)
+      watcher.on('delete', (file) => {
+        console.log('Deleted: ' + file)
+        fs.remove(path.join(config.output, file))
       })
       return run()
   }
