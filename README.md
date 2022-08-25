@@ -113,6 +113,10 @@ export default {
 }
 ```
 
+## Any limitations?
+
+Sure, if you want to use a framework like Svelte, Vue, etc, you're better off using [Vite](https://vitejs.dev/). And if you want more CMS/blog features and/or advanced templating, look at the [jamstack generators](https://jamstack.org/generators/) again.
+
 ## Feedback wanted
 
 Comments, bug reports, feature requests that will keep things simple(st), are very welcome as a [github issue](https://github.com/ciscoheat/simplest-sitegen). Thanks for reading, and enjoy simplicity for a change!
