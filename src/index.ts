@@ -193,12 +193,12 @@ const start = async (mode : Mode, config2? : Partial<Config>) => {
     }
   })
   
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ///// Starting up /////////////////////////////////////////////////
 
   const run = async () => {
     const templateChanged = await parseTemplate(config.templatePlugins.concat([compileSass, cacheBust]))
     return parseFiles(config.filesPlugin.concat([htmlFiles]), templateChanged)
-  }
+  }  
 
   switch(mode) {
     case 'build':
@@ -206,7 +206,9 @@ const start = async (mode : Mode, config2? : Partial<Config>) => {
       return run()
       
     case 'dev':
-      const options = `--server "${config.output}" --files "${config.output}" ` + (config.devServerOptions ? config.devServerOptions : '--no-ui --no-notify')
+      await fs.ensureDir(config.output)
+      const options = `--server "${config.output}" --files "${config.output}" ` + 
+        (config.devServerOptions ? config.devServerOptions : '--no-ui --no-notify')
 
       spawn(`npx browser-sync start ${options}`, [], {
         shell: true,
