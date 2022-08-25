@@ -119,4 +119,4 @@ Sure, if you want to use a framework like Svelte, Vue, etc, you're better off us
 
 ## Feedback wanted
 
-Comments, bug reports, feature requests that will keep things simple(st), are very welcome as a [github issue](https://github.com/ciscoheat/simplest-sitegen). Thanks for reading, and enjoy simplicity for a change!
+Comments, bug reports, feature requests that will keep things simple(st), are very welcome as a [github issue](https://github.com/ciscoheat/simplest-sitegen/issues). Thanks for reading, and enjoy simplicity for a change!
