@@ -13,7 +13,7 @@ Introducing **simplest**. It's true, it really is the simplest static sitegen. O
 ```
 mkdir new-project
 cd new-project
-npm init -y
+npm init es6
 npm install simplest-sitegen
 mkdir src
 ```
@@ -53,7 +53,9 @@ Now let's build the real site content, why not the index page:
 <!-- /build:content -->
 ```
 
-And just a little bit of style.
+It's just HTML! No need to learn anything else, since you already know it! 
+
+Lets just add a little bit of style though:
 
 **src/style.css**
 ```css
@@ -69,7 +71,7 @@ cd new-project
 npx simplest build
 ```
 
-This will generate your brand new site in the `build` directory. For other pages and files, just add them in any subdirectory to `src`, and they will be copied over to the correct dir. It's up to you to link to them correctly, create a nice navigation in `template.html`, etc, but that's quick and easy compared to plowing through the documentation of any other "simpler" site generator out there.
+This will generate your brand new site in the `build` directory, that can be uploaded directly to any host. For more pages and files, just add them in `src` in any folder structure, and they will be copied over to the correct dir. It's up to you to link to them correctly, create a nice navigation in `template.html`, etc, but that's quick and easy compared to plowing through the documentation of any other "simpler" site generator out there.
 
 ## It has a Dev server, of course
 
@@ -79,7 +81,9 @@ We're not done just yet: I'm sure you feel the need for a near-real time hot-rel
 npx simplest
 ```
 
-This will start a [Browsersync](https://browsersync.io/) server, and open up a browser window for you. In case it doesn't work, `npm install browser-sync` should fix it.
+This will start a [Browsersync](https://browsersync.io/) server, and open up a browser window for you. Any changes in `src` will update the browser automatically.
+
+In case the dev server doesn't work straight away, `npm install browser-sync` should fix it.
 
 ## Cache busting included
 
@@ -105,7 +109,7 @@ export default {
   ignoreExtensions: [".sass", ".scss"], // Won't be copied to the output dir
   devServerOptions: '', // Extra Browsersync options
   templatePlugins: [], // Will be documented on popular request
-  filesPlugin: [], // Will be documented on popular request
+  filesPlugin: [] // Will be documented on popular request
 }
 ```
 
