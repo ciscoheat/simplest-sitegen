@@ -14,7 +14,6 @@
   "scripts": {
     "build": "tsc",
     "dev": "node dist/cli.js",
-    "server": "http-server -c-1 build",
     "prepublishOnly": "tsc",
     "start": "node dist/cli.js",
     "test": "node dist/test.js",
