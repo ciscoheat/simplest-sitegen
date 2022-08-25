@@ -42,10 +42,10 @@ const defaultConfig = {
   input: "src" as string,
   output: "build" as string,
   template: "src/template.html" as string,
-  ignoreExtensions: [".sass", ".scss", ".less"] as string[],
+  ignoreExtensions: [".sass", ".scss"] as string[],
+  devServerOptions: '' as string,
   templatePlugins: [] as TemplatePlugin[],
-  filesPlugin: [] as FilesPlugin[],
-  devServerOptions: '' as string
+  filesPlugin: [] as FilesPlugin[]
 }
 
 export type Config = typeof defaultConfig

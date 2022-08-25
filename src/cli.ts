@@ -6,8 +6,8 @@ const args = minimist(process.argv.slice(2), {boolean: true})
 if(args.help) {
   console.log(`Usage:
 
-(npx) simplest build   Builds the site
-(npx) simplest         Starts a dev server`)
+npx simplest build   Builds the site
+npx simplest         Starts a dev server`)
 } else {
   const build = args._.includes('build')
   const watch = args._.includes('watch')

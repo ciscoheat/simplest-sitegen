@@ -15,6 +15,7 @@ mkdir new-project
 cd new-project
 npm init -y
 npm install simplest-sitegen
+mkdir src
 ```
 
 ([pnpm](https://pnpm.io/) is recommended instead of npm though)
@@ -64,6 +65,7 @@ h1 {
 ## Building the site
 
 ```
+cd new-project
 npx simplest build
 ```
 
@@ -77,7 +79,7 @@ We're not done just yet: I'm sure you feel the need for a near-real time hot-rel
 npx simplest
 ```
 
-This will start a [Browsersync](https://browsersync.io/) server, and open up a browser window for you.
+This will start a [Browsersync](https://browsersync.io/) server, and open up a browser window for you. In case it doesn't work, `npm install browser-sync` should fix it.
 
 ## Cache busting included
 
@@ -100,8 +102,8 @@ export default {
   input: "src",
   output: "build",
   template: "src/template.html",
-  ignoreExtensions: [".sass", ".scss", ".less"],
-  devServerOptions: '' // Extra Browsersync options
+  ignoreExtensions: [".sass", ".scss"], // Won't be copied to the output dir
+  devServerOptions: '', // Extra Browsersync options
   templatePlugins: [], // Will be documented on popular request
   filesPlugin: [], // Will be documented on popular request
 }
