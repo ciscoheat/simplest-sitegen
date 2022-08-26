@@ -12,8 +12,6 @@ import { Options } from 'browser-sync'
 import { log } from './utils.js'
 import { cacheBust, compileSass, htmlFiles } from './plugins.js'
 
-type TemplatePlugin = (context : Context, template : string) => Promise<string>
-
 interface Rename {
   file: string
   content : string | Uint8Array  
@@ -27,9 +25,12 @@ interface Keep {
   file: 'keep'
 }
 
+type FileParser = (context : Context, file : string, content : string) 
+  => Promise<string | Rename | Remove | Keep>
+
 type FilesPlugin = {
   extensions: string[],
-  parse: (context : Context, file : string, content : string) => Promise<string | Rename | Remove | Keep>
+  parse: FileParser
 }
 
 type HtmlParser = {
@@ -43,8 +44,8 @@ const defaultConfig = {
   template: "src/template.html" as string,
   ignoreExtensions: [".sass", ".scss"] as string[],
   devServerOptions: { ui: false, notify: false } as Options,
-  templatePlugins: [] as TemplatePlugin[],
-  filesPlugins: [] as FilesPlugin[]
+  sassOptions : {},
+  plugins: [] as FilesPlugin[]
 }
 
 export type Config = typeof defaultConfig
@@ -107,7 +108,7 @@ const start = async (config2? : Partial<Config>) => {
 
   ///////////////////////////////////////////////////////////
 
-  const parseTemplate = async (plugins : TemplatePlugin[]) => {
+  const parseTemplate = async (plugins : FileParser[]) => {
     const {output, template} = config
 
     const templateOutputFile = path.join(output, path.basename(template))
@@ -115,7 +116,9 @@ const start = async (config2? : Partial<Config>) => {
 
     let templateContent = originalTemplate
     for (const plugin of plugins) {
-      templateContent = await plugin(context, templateContent)
+      const parsed = await plugin(context, config.template, templateContent)
+      if(typeof parsed !== 'string') continue
+      templateContent = parsed
     }
     context.parser.template = templateContent
 
@@ -205,13 +208,13 @@ const start = async (config2? : Partial<Config>) => {
   
   ///// Starting up /////////////////////////////////////////////////
 
-  const run = () => parseTemplate(config.templatePlugins.concat([compileSass, cacheBust]))
-    .then(templateChanged => parseFiles(config.filesPlugins.concat([htmlFiles]), templateChanged))
+  const run = () => parseTemplate([compileSass, cacheBust])
+    .then(templateChanged => parseFiles(config.plugins.concat([htmlFiles]), templateChanged))
 
   return {context, run}
 }
 
-export const simplestBuild = async (config? : Config) => {
+export const simplestBuild = async (config? : Partial<Config>) => {
   const run = await start(config)
   const config2 = run.context.config
 
@@ -219,7 +222,7 @@ export const simplestBuild = async (config? : Config) => {
   return run.run()
 }
 
-export const simplestWatch = async (config? : Config) => {
+export const simplestWatch = async (config? : Partial<Config>) => {
   const run = await start(config)
   const config2 = run.context.config
 
@@ -244,7 +247,7 @@ export const simplestWatch = async (config? : Config) => {
   return watcher as any
 }
 
-export const simplestDev = async (config? : Config) => {
+export const simplestDev = async (config? : Partial<Config>) => {
   const run = await start(config)
   const config2 = run.context.config
 

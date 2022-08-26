@@ -25,9 +25,10 @@ const srcScripts = (root : ReturnType<typeof parse>, selector : string, attr : s
 
 /////////////////////////////////////////////////////////////////////
 
-export const cacheBust = async (context : Context, template : string) => {
-  const root = parse(template, {comment: true})
+export const cacheBust = async (context : Context, file : string, content : string) => {
+  const root = parse(content, {comment: true})
   const scriptFiles = cssScripts(root).concat(jsScripts(root))
+    .filter(f => !f.file.includes('?'))
     .filter(f => !isAbsolute(f.file))
 
   for (const {el, attr, file} of scriptFiles) {
@@ -51,13 +52,13 @@ export const cacheBust = async (context : Context, template : string) => {
 
 let sass : typeof compile
 
-export const compileSass = async (context : Context, template : string) => {
-  const root = parse(template, {comment: true})
+export const compileSass = async (context : Context, file : string, content : string) => {
+  const root = parse(content, {comment: true})
   for (const link of cssScripts(root)) {
     if(!(link.file.endsWith('.sass') || link.file.endsWith('.scss'))) continue
     if(!sass) sass = (await import('sass')).default.compile
     
-    const compiled = sass(path.join(context.config.input, link.file))
+    const compiled = sass(path.join(context.config.input, link.file), context.config.sassOptions)
     const cssFileName = path.changeExt(link.file, '.css')
 
     await fs.outputFile(path.join(context.config.output, cssFileName), compiled.css)
