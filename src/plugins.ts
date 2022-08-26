@@ -75,9 +75,7 @@ export const compileSass = async (context : Context, template : string) => {
 
 export const htmlFiles = {
   extensions: ['.html', '.htm'],
-  parse: async (context : Context, file : string) => {
-    const content = await fs.readFile(file, {encoding: 'utf8'})
-
+  parse: async (context : Context, file : string, content : string) => {
     return content.includes('<!-- /build:content -->')
       ? context.parser.processContent(content)
       : content

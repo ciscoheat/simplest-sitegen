@@ -1,7 +1,7 @@
 /**
  * Hash using djb2
  */
- export const hash = (value : string | Buffer) => {
+ export const hash = (value : string | Uint8Array) => {
 	let hash = 5381;
 	let i = value.length;
 

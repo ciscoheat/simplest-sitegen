@@ -10,13 +10,12 @@ import { cacheBust, compileSass, htmlFiles } from './plugins.js'
 import { cwd } from 'process'
 import { Stats } from 'fs'
 import { Options } from 'browser-sync'
-import sane from 'sane'
 
 type TemplatePlugin = (context : Context, template : string) => Promise<string>
 
 interface Rename {
   file: string
-  content : string | Buffer  
+  content : string | Uint8Array  
 }
 
 interface Remove {
@@ -29,7 +28,7 @@ interface Keep {
 
 type FilesPlugin = {
   extensions: string[],
-  parse: (context : Context, file : string) => Promise<string | Buffer | Rename | Remove | Keep>
+  parse: (context : Context, file : string, content : string) => Promise<string | Rename | Remove | Keep>
 }
 
 type HtmlParser = {
@@ -92,8 +91,6 @@ const start = async (config2? : Partial<Config>) => {
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  const outputFile = (file : string) => path.join(config.output, file.slice(config.input.length))
-
   const isNewer = (src : string, dest : string) => Promise.all([fs.stat(src), fs.stat(dest)])
     .then(([src1, dest1]) => {
       const output : boolean = src1.mtimeMs > dest1.mtimeMs
@@ -106,7 +103,6 @@ const start = async (config2? : Partial<Config>) => {
     })
 
   const hasExtension = (exts : string[]) => (input : string) => exts.some(ext => input.endsWith(`${ext}`))
-  const hasntExtension = (exts : string[]) => (input : string) => !exts.some(ext => input.endsWith(`${ext}`))
 
   ///////////////////////////////////////////////////////////
 
@@ -141,54 +137,68 @@ const start = async (config2? : Partial<Config>) => {
   }
 
   const parseFiles = (async (plugins : FilesPlugin[], templateChanged : boolean) => {
-    const allFiles = new Set(await fg(path.join(config.input, `/**/*.*`)))
+    const fileList = await fg(path.join(config.input, `/**/*.*`))
+    const allFiles = new Map<string, string>(fileList.map(f => [f, '']))    
+
     // Prevent template from being parsed, since it has already been parsed in its own plugins.
     // This also makes it cacheable, because otherwise it would be overwritten here.
     allFiles.delete(config.template)
 
-    const parseFiles = async (exts : string[], parse : FilesPlugin['parse']) => {
-      const files = Array.from(allFiles).filter(hasExtension(exts))
-
-      let queue = files
-
-      if(!templateChanged) {
-        const newer = await Promise.all(files.map((file : string) => isNewer(file, outputFile(file))))
-        queue = files.filter((file : string, i : number) => newer[i])
-      }
-
-      return queue.map((f : string) => ({
-        file: f,
-        content: parse(context, f)
-      }))
-    }
+    const outputFile = (file : string) => path.join(config.output, file.slice(config.input.length))
+    const output = (file : string, content : string | Uint8Array) => fs.outputFile(outputFile(file), content)
 
     for (const plugin of plugins) {
-      const files = await parseFiles(plugin.extensions, plugin.parse)
+      const files = []
+      const extensionFilter = hasExtension(plugin.extensions)
+  
+      for (let [file, content] of allFiles) {
+        if(!extensionFilter(file)) continue
+        
+        if(!content) {
+          const newer = templateChanged
+            ? true
+            : await isNewer(file, outputFile(file))
 
-      for (const parsed of files) {
-        const content = await parsed.content
-        const removeFile = () => allFiles.delete(parsed.file)
+          if(newer) content = await fs.readFile(file, {encoding: 'utf8'})
+        }
 
-        if(typeof content === 'string' || Buffer.isBuffer(content)) {
-          fs.outputFile(outputFile(parsed.file), content)
-          removeFile()
+        files.push({
+          file,
+          content: await plugin.parse(context, file, content)
+        })
+      }
+
+      for (const {file, content} of files) {
+        const fileParsed = (content : string) => allFiles.set(file, content)
+
+        if(typeof content === 'string') {
+          fileParsed(content)
         } else if(content.file == 'remove') {
-          removeFile()
+          allFiles.delete(content.file)
         } else if(content.file == 'keep') {
-          // Pass through
+          // Pass through unmodified to the next plugin, or just copy at the end
         } else {
           const c = content as Rename
-          fs.outputFile(outputFile(c.file), c.content)
-          removeFile()
+          output(c.file, c.content)
+          allFiles.delete(c.file)
         }
       }
     }
 
-    // Copy the remaining files
-    for (const file of [...allFiles].filter(hasntExtension(config.ignoreExtensions))) {
-      const output = outputFile(file)
-      if(!await isNewer(file, output)) continue
-      fs.outputFile(output, await fs.readFile(file))
+    const ignoreFile = hasExtension(config.ignoreExtensions)
+
+    // Copy the parsed and remaining files
+    for (const [file, content] of allFiles.entries()) {
+      if(content) {
+        output(file, content)
+      } else if(!ignoreFile(file)) {
+        const output = outputFile(file)
+        
+        if(await isNewer(file, output)) {
+          await fs.ensureDir(path.dirname(output))
+          fs.copy(file, output)
+        }
+      }
     }
   })
   
