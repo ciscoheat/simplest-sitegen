@@ -34,14 +34,16 @@ That's right, there won't be fifteen files in your project after running a crypt
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title><!-- build:title --></title>
     <link rel="stylesheet" href="/style.css">
+    <!-- build:styles -->
   </head>
   <body>
     <!-- build:content -->
+    <!-- build:scripts -->
   </body>
 </html>
 ```
 
-There are two template variables inside it, only one is required: `<!-- build:content -->`
+There are four template variables inside it, only one is required: `<!-- build:content -->`
 
 Now let's build the real site content, why not the index page:
 
@@ -53,7 +55,7 @@ Now let's build the real site content, why not the index page:
 <!-- /build:content -->
 ```
 
-It's just HTML! No need to learn anything else, since you already know it! 
+It's just HTML! No need to learn anything, since you already know it!
 
 Lets just add a little bit of style though:
 
@@ -117,7 +119,7 @@ Browsersync options are listed [here](https://browsersync.io/docs/options).
 
 ## Any limitations?
 
-Sure, if you want to use a framework like Svelte, Vue, etc, you're better off using [Vite](https://vitejs.dev/). And if you want more CMS/blog features and/or advanced templating, look at the [jamstack generators](https://jamstack.org/generators/) again.
+Sure, if you want to use a framework like Svelte, Vue, etc, you're better off using [Vite](https://vitejs.dev/). And if you want more advanced CMS/blog features with advanced templating, look at the [jamstack generators](https://jamstack.org/generators/) again. But for non-complicated sites it should be fine, and you can even add some CMS capabilities with a [headless CMS](https://jamstack.org/headless-cms/).
 
 ## Feedback wanted
 
