@@ -89,7 +89,7 @@ This will start a [Browsersync](https://browsersync.io/) server, and open up a b
 
 ## Cache busting included
 
-All links and scripts starting with `/` but not `//`, for example the one in `<link rel="stylesheet" href="/style.css">`, will be automatically cache-busted based on its content, so you don't have to worry about serving old scripts and styles.
+All links and scripts relative to the site, for example `/script.js` or `../css/style.css` (but not `https://example.com/script.js`), will be automatically cache-busted based on its content, so you don't have to worry about serving old scripts and styles.
 
 ## Sass compilation included as well
 

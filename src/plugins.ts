@@ -14,8 +14,7 @@ const resolveUrl = (url : string, basePath : string, srcFile : string) => {
   if(url.startsWith('/'))
     return path.join(basePath, url)
   else {
-    // TODO: Fix relative paths
-    return path.join(basePath, url)
+    return path.join(path.dirname(srcFile), url)
   }
 }
 

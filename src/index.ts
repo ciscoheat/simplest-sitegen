@@ -148,7 +148,7 @@ const start = async (config2? : Partial<Config>) => {
       let templateContent = await fs.readFile(file, {encoding: 'utf8'})
 
       for (const plugin of plugins) {
-        const parsed = await plugin.parse(context, config.template, templateContent)
+        const parsed = await plugin.parse(context, file, templateContent)
         if(typeof parsed !== 'string') continue
         templateContent = parsed
       }
