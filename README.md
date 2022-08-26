@@ -75,13 +75,7 @@ This will generate your brand new site in the `build` directory, that can be upl
 
 ## It has a Dev server, of course
 
-We're not done just yet: I'm sure you feel the need for a near-real time hot-reloading supercharged experience when developing your site. It's one of the simplest to use. First install a package:
-
-```
-npm i browser-sync
-```
-
-Then you start the dev server with a simple:
+We're not done just yet: I'm sure you feel the need for a near-real time hot-reloading supercharged experience when developing your site. It's one of the simplest to use:
 
 ```
 npx simplest
@@ -91,19 +85,21 @@ This will start a [Browsersync](https://browsersync.io/) server, and open up a b
 
 ## Cache busting included
 
-All non-absolute links and scripts, for example the one in `<link rel="stylesheet" href="/style.css">`, will be automatically cache-busted based on its content, so you don't have to worry about serving old scripts and styles.
+All non-absolute links and scripts in the template file, for example the one in `<link rel="stylesheet" href="/style.css">`, will be automatically cache-busted based on its content, so you don't have to worry about serving old scripts and styles.
 
 ## Sass compilation included as well
 
-with a simple `(p)npm i sass`, you can now use [Sass](https://sass-lang.com/) instead of css in your website. It's a ridiculously simple drop-in replacement:
+with a simple `(p)npm i sass`, you can now use [Sass](https://sass-lang.com/) instead of css in your template file. It's a ridiculously simple drop-in replacement:
 
 ```html
 <link rel="stylesheet" href="/style.scss">
 ```
 
+Just make sure that the source file is in the correct directory as the output, i.e. `src/css/style.scss` should be linked as `/css/style.scss` in the template.
+
 ## Configuration
 
-If you need to complicate things, it's understandable, things aren't always as simple as one would like. Fortunately it's not too hard to configure simplest. Create a `simplest.config.js` file in your project top directory (above `src`), with any of the following properties:
+If you need to complicate things, it's understandable, things aren't always as simple as one would like. Fortunately it's not too hard to configure simplest. Create a `simplest.config.js` file in your project top directory, with any of the following properties:
 
 ```js
 export default {
@@ -111,11 +107,13 @@ export default {
   output: "build",
   template: "src/template.html",
   ignoreExtensions: [".sass", ".scss"], // Won't be copied to the output dir
-  devServerOptions: '', // Extra Browsersync options
+  devServerOptions: { ui: false, notify: false }, // Extra Browsersync options
   templatePlugins: [], // Will be documented on popular request
-  filesPlugin: [] // Will be documented on popular request
+  filesPlugins: [] // Will be documented on popular request
 }
 ```
+
+Browsersync options are listed [here](https://browsersync.io/docs/options).
 
 ## Any limitations?
 
@@ -123,4 +121,6 @@ Sure, if you want to use a framework like Svelte, Vue, etc, you're better off us
 
 ## Feedback wanted
 
-Comments, bug reports, feature requests that will keep things simple(st), are very welcome as a [github issue](https://github.com/ciscoheat/simplest-sitegen/issues). Thanks for reading, and enjoy simplicity for a change!
+Comments, bug reports and feature requests that will keep things simple(st), are very welcome as a [github issue](https://github.com/ciscoheat/simplest-sitegen/issues). 
+
+Thanks for reading, and enjoy simplicity for a change!

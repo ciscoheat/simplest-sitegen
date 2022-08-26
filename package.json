@@ -1,6 +1,6 @@
 {
   "name": "simplest-sitegen",
-  "version": "0.8.2",
+  "version": "0.9.0",
   "author": "",
   "description": "The simplest static sitegen there is. Build a modern, fully working website with only HTML.",
   "repository": {
@@ -19,12 +19,17 @@
     "test": "node dist/test.js",
     "watch": "tsc -w"
   },
-  "keywords": [],
+  "keywords": [
+    "static-site-generator",
+    "static-site",
+    "ssg",
+    "website",
+    "generator",
+    "html"
+  ],
   "license": "MIT",
   "dependencies": {
     "ansi-colors": "^4.1.3",
-    "browser-sync": ">=2",
-    "cross-spawn": "^7.0.3",
     "debug": "^4.3.4",
     "fast-glob": "^3.2.11",
     "fs-extra": "^10.1.0",
@@ -36,6 +41,7 @@
   },
   "devDependencies": {
     "@npmcli/disparity-colors": "^2.0.0",
+    "@types/browser-sync": "^2.26.3",
     "@types/cross-spawn": "^6.0.2",
     "@types/debug": "^4.1.7",
     "@types/diff": "^5.0.2",
@@ -43,14 +49,12 @@
     "@types/minimist": "^1.2.2",
     "@types/node": "^18.7.8",
     "@types/sane": "^2.0.1",
+    "browser-sync": ">=2",
     "diff": "^5.1.0",
     "dir-compare": "^4.0.0",
     "sass": "^1.54.5",
     "ts-node": "^10.9.1",
     "typescript": "^4.7.4",
     "url": "^0.11.0"
-  },
-  "peerDependencies": {
-    "browser-sync": ">=2"
   }
 }

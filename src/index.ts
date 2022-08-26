@@ -4,16 +4,15 @@ import debug from 'debug'
 import Templator from 'template-html'
 import fg from 'fast-glob'
 import path from 'upath'
+import c from 'ansi-colors'
 
 import { cacheBust, compileSass, htmlFiles } from './plugins.js'
 import { cwd } from 'process'
 import { Stats } from 'fs'
-import { spawn } from 'cross-spawn'
-import c from 'ansi-colors'
+import { Options } from 'browser-sync'
+import sane from 'sane'
 
 type TemplatePlugin = (context : Context, template : string) => Promise<string>
-
-type Mode = 'build' | 'dev' | 'watch'
 
 interface Rename {
   file: string
@@ -43,9 +42,9 @@ const defaultConfig = {
   output: "build" as string,
   template: "src/template.html" as string,
   ignoreExtensions: [".sass", ".scss"] as string[],
-  devServerOptions: '' as string,
+  devServerOptions: { ui: false, notify: false } as Options,
   templatePlugins: [] as TemplatePlugin[],
-  filesPlugin: [] as FilesPlugin[]
+  filesPlugins: [] as FilesPlugin[]
 }
 
 export type Config = typeof defaultConfig
@@ -61,8 +60,8 @@ const d = debug('simplest')
 
 /////////////////////////////////////////////////////////////////////
 
-const start = async (mode : Mode, config2? : Partial<Config>) => {
-  const config = Object.assign({}, defaultConfig)
+const start = async (config2? : Partial<Config>) => {
+  const config = Object.assign({}, defaultConfig, config2)
 
   try {
     const userConfig = await import('file:///' + path.join(cwd(), 'simplest.config.js'))
@@ -195,45 +194,57 @@ const start = async (mode : Mode, config2? : Partial<Config>) => {
   
   ///// Starting up /////////////////////////////////////////////////
 
-  const run = async () => {
-    const templateChanged = await parseTemplate(config.templatePlugins.concat([compileSass, cacheBust]))
-    return parseFiles(config.filesPlugin.concat([htmlFiles]), templateChanged)
-  }  
+  const run = () => parseTemplate(config.templatePlugins.concat([compileSass, cacheBust]))
+    .then(templateChanged => parseFiles(config.filesPlugins.concat([htmlFiles]), templateChanged))
 
-  switch(mode) {
-    case 'build':
-      await fs.remove(config.output)
-      return run()
-      
-    case 'dev':
-      await fs.ensureDir(config.output)
-      const options = `--server "${config.output}" --files "${config.output}" ` + 
-        (config.devServerOptions ? config.devServerOptions : '--no-ui --no-notify')
-
-      spawn(`npx browser-sync start ${options}`, [], {
-        shell: true,
-        stdio: 'inherit'
-      })
-
-    case 'watch':
-      const runWatch = (file : string, root : string, stat : Stats) => {
-        console.log('Updated: ' + file)
-        return run()
-      }
-    
-      console.log(c.yellow('Watching for file changes in ') + c.bold.blue(config.input))
-      const sane = await import('sane')
-      const watcher = sane.default(config.input)
-      watcher.on('change', runWatch)
-      watcher.on('add', runWatch)
-      watcher.on('delete', (file) => {
-        console.log('Deleted: ' + file)
-        fs.remove(path.join(config.output, file))
-      })
-      return run()
-  }
+  return {context, run}
 }
 
-export const simplestBuild = (config? : Config) => start('build', config)
-export const simplestWatch = (config? : Config) => start('watch', config)
-export const simplestDev = (config? : Config) => start('dev', config)
+export const simplestBuild = async (config? : Config) => {
+  const run = await start(config)
+  const config2 = run.context.config
+
+  await fs.remove(config2.output)
+  return run.run()
+}
+
+export const simplestWatch = async (config? : Config) => {
+  const run = await start(config)
+  const config2 = run.context.config
+
+  const runWatch = (file : string, root : string, stat : Stats) => {
+    console.log('Updated: ' + file)
+    run.run()
+  }
+
+  console.log(c.yellow('Watching for file changes in ') + c.blue(config2.input))
+
+  const sane = (await import('sane')).default
+  const watcher = sane(config2.input)
+
+  watcher.on('change', runWatch)
+  watcher.on('add', runWatch)
+  watcher.on('delete', (file) => {
+    console.log('Deleted: ' + file)
+    fs.remove(path.join(config2.output, file))
+  })
+
+  await run.run()
+  return watcher as any
+}
+
+export const simplestDev = async (config? : Config) => {
+  const run = await start(config)
+  const config2 = run.context.config
+
+  await fs.ensureDir(config2.output)
+  await simplestWatch(config)
+      
+  const options = Object.assign({
+    server: config2.output,
+    files: config2.output
+  }, config2.devServerOptions)
+
+  const bs = (await import('browser-sync')).default.create()
+  return bs.init(options)
+}
