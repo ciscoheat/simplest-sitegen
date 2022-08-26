@@ -1,6 +1,6 @@
 {
   "name": "simplest-sitegen",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "author": "",
   "description": "The simplest static sitegen there is. Build a modern, fully working website with only HTML.",
   "repository": {

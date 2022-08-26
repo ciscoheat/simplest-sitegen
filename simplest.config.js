@@ -1,4 +1,5 @@
 export default {
   input: 'site',
-  template: 'template.html'
+  template: 'template.html',
+  passThrough: ['FAQ/keep_intact.*']
 }

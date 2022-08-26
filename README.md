@@ -18,7 +18,9 @@ npm i simplest-sitegen
 mkdir src
 ```
 
-The `npm init es6` is for `"type": "module"` to be included in the `package.json` file. You can add that line manually and use the normal `npm init` if you want. ([pnpm](https://pnpm.io/) is recommended instead of npm though!)
+The `npm init es6` is for `"type": "module"` to be included in the `package.json` file. You can add that line manually and use the normal `npm init` if you want. 
+
+([pnpm](https://pnpm.io/) is recommended instead of npm though!)
 
 ## No scaffolding except one file: `src/template.html`
 
@@ -87,17 +89,21 @@ This will start a [Browsersync](https://browsersync.io/) server, and open up a b
 
 ## Cache busting included
 
-All non-absolute links and scripts in the template file, for example the one in `<link rel="stylesheet" href="/style.css">`, will be automatically cache-busted based on its content, so you don't have to worry about serving old scripts and styles.
+All links and scripts starting with `/` but not `//`, for example the one in `<link rel="stylesheet" href="/style.css">`, will be automatically cache-busted based on its content, so you don't have to worry about serving old scripts and styles.
 
 ## Sass compilation included as well
 
-with a simple `(p)npm i sass`, you can now use [Sass](https://sass-lang.com/) instead of css in your template file. It's a ridiculously simple drop-in replacement:
+with a simple `(p)npm i sass`, you can now use [Sass](https://sass-lang.com/) instead of css in your html files. It's a ridiculously simple drop-in replacement:
 
 ```html
 <link rel="stylesheet" href="/style.scss">
 ```
 
 Just make sure that the source file is in the correct directory as the output, i.e. `src/css/style.scss` should be linked as `/css/style.scss` in the template.
+
+## Multiple templates
+
+You can put a `template.html` in any subdirectory, and all html files in that directory and below will use that template instead of the top-level one.
 
 ## Configuration
 
@@ -107,15 +113,18 @@ If you need to complicate things, it's understandable, things aren't always as s
 export default {
   input: "src",
   output: "build",
-  template: "src/template.html",
+  template: "template.html",
   ignoreExtensions: [".sass", ".scss"], // Won't be copied to the output dir
+  passThrough: [], // Glob patterns (in input directory) that will skip parsing for matched files
   devServerOptions: { ui: false, notify: false }, // Extra Browsersync options
-  templatePlugins: [], // Will be documented on popular request
-  filesPlugins: [] // Will be documented on popular request
+  sassOptions: { style: "compressed" } // Extra sass options
+  plugins: [], // Will be documented on popular request
 }
 ```
 
-Browsersync options are listed [here](https://browsersync.io/docs/options).
+- Browsersync options are listed [here](https://browsersync.io/docs/options)
+- Sass options are listed [here](https://sass-lang.com/documentation/js-api/interfaces/Options)
+- Glob patterns are available [here](https://github.com/mrmlnc/fast-glob#pattern-syntax).
 
 ## Any limitations?
 

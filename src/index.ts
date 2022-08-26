@@ -44,8 +44,9 @@ const defaultConfig = {
   output: "build" as string,
   template: "template.html" as string,
   ignoreExtensions: [".sass", ".scss"] as string[],
+  passThrough: [],
   devServerOptions: { ui: false, notify: false } as Options,
-  sassOptions : {},
+  sassOptions : {style: "compressed"},
   plugins: [] as FilesPlugin[]
 }
 
@@ -64,9 +65,18 @@ const start = async (config2? : Partial<Config>) => {
   const config = Object.assign({}, defaultConfig, config2)
 
   try {
-    const userConfig = await import('file:///' + path.join(cwd(), 'simplest.config.js'))
-    Object.assign(config, userConfig.default)
-  } catch (e) {}
+    const userConfigFile = path.join(cwd(), 'simplest.config.js')
+    await fs.access(userConfigFile)
+
+    try {
+      const userConfig = await import('file:///' + userConfigFile)
+      Object.assign(config, userConfig.default)
+    } catch (e) {
+      log('Could not import simplest.config.js. Did you add "type": "module" to package.json?')
+    }
+  } catch(e) {
+    // File doesn't exist, keep going
+  }
 
   if(config2)
     Object.assign(config, config2)
@@ -111,6 +121,7 @@ const start = async (config2? : Partial<Config>) => {
     const NOT_PARSED = ''
 
     const fileList = await fg(path.join(config.input, `/**/*.*`))
+    const passThroughFiles = new Set(await fg(config.passThrough.map(glob => path.join(config.input, glob))))
     const allFiles = new Map<string, string>(fileList.map(f => [f, NOT_PARSED]))
     const plugins2 = [...plugins]
 
@@ -118,8 +129,8 @@ const start = async (config2? : Partial<Config>) => {
     // This also makes it cacheable, because otherwise it would be overwritten here.
     allFiles.delete(config.template)
 
-    const outputFile = (file : string) => path.join(config.output, file.slice(config.input.length))
-    const writeFile = (file : string, content : string | Uint8Array) => fs.outputFile(outputFile(file), content)
+    const outputFileName = (file : string) => path.join(config.output, file.slice(config.input.length))
+    const writeFile = (file : string, content : string | Uint8Array) => fs.outputFile(outputFileName(file), content)
 
     const usePlugin = new Map(plugins2.map(p => [p, hasExtension(p.extensions)]))
     const templateMap = new Map<string, string>()
@@ -131,8 +142,8 @@ const start = async (config2? : Partial<Config>) => {
 
       if(fileName != config.template) continue
 
-      const templateOutputFile = outputFile(file)
-      const templateChanged = await isNewer(file, outputFile(file))
+      const templateOutputFile = outputFileName(file)
+      const templateChanged = await isNewer(file, templateOutputFile)
 
       let templateContent = await fs.readFile(file, {encoding: 'utf8'})
 
@@ -141,7 +152,6 @@ const start = async (config2? : Partial<Config>) => {
         if(typeof parsed !== 'string') continue
         templateContent = parsed
       }
-
 
       templateMap.set(templatePath, templateContent)
               
@@ -159,9 +169,8 @@ const start = async (config2? : Partial<Config>) => {
       // Remove the parsed template(s) from the list so it won't be parsed again
       allFiles.delete(file)
     }
-
+    
     const parseFile = async (file : string) => {
-      let content : string = allFiles.get(file) || NOT_PARSED
 
       const templateFor = (file : string) => {
         let fileName = file
@@ -177,12 +186,11 @@ const start = async (config2? : Partial<Config>) => {
       for (const plugin of plugins2) {
         if(!usePlugin.get(plugin)!(file)) continue
 
-        content = allFiles.get(file) || await fs.readFile(file, {encoding: 'utf8'})
-
+        const content = allFiles.get(file) || await fs.readFile(file, {encoding: 'utf8'})
         const parsed = await plugin.parse(context, file, content)
 
         if(typeof parsed === 'string') {
-          content = parsed
+          allFiles.set(file, parsed)
         } else if(parsed.file == 'remove') {
           allFiles.delete(file)
           return
@@ -196,12 +204,10 @@ const start = async (config2? : Partial<Config>) => {
           return
         }  
       }
-      
-      allFiles.set(file, content)
     }
 
     for (const file of allFiles.keys()) {
-      // TODO: Check if file or template is newer
+      if(passThroughFiles.has(file)) continue
       await parseFile(file)
     }
     
@@ -211,7 +217,7 @@ const start = async (config2? : Partial<Config>) => {
       if(content) {
         writeFile(file, content)
       } else if(!ignoreFile(file)) {
-        const output = outputFile(file)
+        const output = outputFileName(file)
         
         if(await isNewer(file, output)) {
           await fs.ensureDir(path.dirname(output))
@@ -245,7 +251,7 @@ export const simplestWatch = async (config? : Partial<Config>) => {
     build.run()
   }
 
-  log(c.yellow('Watching for file changes in ') + c.blue(config2.input))
+  log('Watching for file changes in ' + c.blue(config2.input))
 
   const sane = (await import('sane')).default
   const watcher = sane(config2.input)
@@ -262,6 +268,7 @@ export const simplestWatch = async (config? : Partial<Config>) => {
 }
 
 export const simplestDev = async (config? : Partial<Config>) => {
+  log('Starting dev server')
   const build = await start(config)
   const config2 = build.context.config
 
