@@ -25,8 +25,9 @@ interface Keep {
   file: 'keep'
 }
 
-type FileParser = (context : Context, file : string, content : string) 
-  => Promise<string | Rename | Remove | Keep>
+type ParsedFile = string | Rename | Remove | Keep
+
+type FileParser = (context : Context, file : string, content : string) => Promise<ParsedFile>
 
 type FilesPlugin = {
   extensions: string[],
@@ -41,7 +42,7 @@ type HtmlParser = {
 const defaultConfig = {
   input: "src" as string,
   output: "build" as string,
-  template: "src/template.html" as string,
+  template: "template.html" as string,
   ignoreExtensions: [".sass", ".scss"] as string[],
   devServerOptions: { ui: false, notify: false } as Options,
   sassOptions : {},
@@ -59,8 +60,6 @@ export type Context = {
 
 const d = debug('simplest')
 
-/////////////////////////////////////////////////////////////////////
-
 const start = async (config2? : Partial<Config>) => {
   const config = Object.assign({}, defaultConfig, config2)
 
@@ -72,19 +71,19 @@ const start = async (config2? : Partial<Config>) => {
   if(config2)
     Object.assign(config, config2)
 
+  const baseTemplate = path.join(config.input, config.template)
+
   try {
     // Sanity checks
-    await fs.access(config.template)
+    await fs.access(baseTemplate)
   } catch(e) {
-    throw new Error(`Template file ${config.template} not found!`)
+    throw new Error(`Template file ${baseTemplate} not found!`)
   }
 
   const parser = new Templator({
     preserveTree: true,
-    templateFile: config.template
+    templateFile: baseTemplate
   }) as HtmlParser
-
-  const originalTemplate = parser.template
 
   const context = {
     config,
@@ -108,93 +107,109 @@ const start = async (config2? : Partial<Config>) => {
 
   ///////////////////////////////////////////////////////////
 
-  const parseTemplate = async (plugins : FileParser[]) => {
-    const {output, template} = config
+  const parseAllFiles = (async (plugins : FilesPlugin[]) => {
+    const NOT_PARSED = ''
 
-    const templateOutputFile = path.join(output, path.basename(template))
-    const templateChanged = await isNewer(template, templateOutputFile)
-
-    let templateContent = originalTemplate
-    for (const plugin of plugins) {
-      const parsed = await plugin(context, config.template, templateContent)
-      if(typeof parsed !== 'string') continue
-      templateContent = parsed
-    }
-    context.parser.template = templateContent
-
-    if(templateChanged) {
-      await fs.outputFile(templateOutputFile, templateContent)
-      return true
-    }
-
-    let currentTemplate = null
-    try {
-      currentTemplate = await fs.readFile(templateOutputFile, {encoding: 'utf8'})
-    } catch(e) {}
-
-    if(currentTemplate != templateContent) {
-      await fs.outputFile(templateOutputFile, templateContent)
-      return true
-    }
-
-    return false
-  }
-
-  const parseFiles = (async (plugins : FilesPlugin[], templateChanged : boolean) => {
     const fileList = await fg(path.join(config.input, `/**/*.*`))
-    const allFiles = new Map<string, string>(fileList.map(f => [f, '']))    
+    const allFiles = new Map<string, string>(fileList.map(f => [f, NOT_PARSED]))
+    const plugins2 = [...plugins]
 
     // Prevent template from being parsed, since it has already been parsed in its own plugins.
     // This also makes it cacheable, because otherwise it would be overwritten here.
     allFiles.delete(config.template)
 
     const outputFile = (file : string) => path.join(config.output, file.slice(config.input.length))
-    const output = (file : string, content : string | Uint8Array) => fs.outputFile(outputFile(file), content)
+    const writeFile = (file : string, content : string | Uint8Array) => fs.outputFile(outputFile(file), content)
 
-    for (const plugin of plugins) {
-      const files = []
-      const extensionFilter = hasExtension(plugin.extensions)
+    const usePlugin = new Map(plugins2.map(p => [p, hasExtension(p.extensions)]))
+    const templateMap = new Map<string, string>()
+
+    // Generate template map (dir => template)
+    for (const file of allFiles.keys()) {
+      const templatePath = path.dirname(file)
+      const fileName = path.basename(file)
+
+      if(fileName != config.template) continue
+
+      const templateOutputFile = outputFile(file)
+      const templateChanged = await isNewer(file, outputFile(file))
+
+      let templateContent = await fs.readFile(file, {encoding: 'utf8'})
+
+      for (const plugin of plugins) {
+        const parsed = await plugin.parse(context, config.template, templateContent)
+        if(typeof parsed !== 'string') continue
+        templateContent = parsed
+      }
+
+
+      templateMap.set(templatePath, templateContent)
+              
+      let currentTemplate = null
+      if(!templateChanged) {
+        try {
+          currentTemplate = await fs.readFile(templateOutputFile, {encoding: 'utf8'})
+        } catch(e) {}
+      }
   
-      for (let [file, content] of allFiles) {
-        if(!extensionFilter(file)) continue
-        
-        if(!content) {
-          const newer = templateChanged
-            ? true
-            : await isNewer(file, outputFile(file))
-
-          if(newer) content = await fs.readFile(file, {encoding: 'utf8'})
-        }
-
-        files.push({
-          file,
-          content: await plugin.parse(context, file, content)
-        })
+      if(currentTemplate != templateContent) {
+        fs.outputFile(templateOutputFile, templateContent)
       }
 
-      for (const {file, content} of files) {
-        const fileParsed = (content : string) => allFiles.set(file, content)
-
-        if(typeof content === 'string') {
-          fileParsed(content)
-        } else if(content.file == 'remove') {
-          allFiles.delete(content.file)
-        } else if(content.file == 'keep') {
-          // Pass through unmodified to the next plugin, or just copy at the end
-        } else {
-          const c = content as Rename
-          output(c.file, c.content)
-          allFiles.delete(c.file)
-        }
-      }
+      // Remove the parsed template(s) from the list so it won't be parsed again
+      allFiles.delete(file)
     }
 
-    const ignoreFile = hasExtension(config.ignoreExtensions)
+    const parseFile = async (file : string) => {
+      let content : string = allFiles.get(file) || NOT_PARSED
 
+      const templateFor = (file : string) => {
+        let fileName = file
+        while(file && file != '.') {
+          file = path.dirname(file)
+          if(templateMap.has(file)) return templateMap.get(file)!
+        }
+        throw new Error('Template not found for ' + fileName)
+      }
+      
+      context.parser.template = templateFor(file)
+  
+      for (const plugin of plugins2) {
+        if(!usePlugin.get(plugin)!(file)) continue
+
+        content = allFiles.get(file) || await fs.readFile(file, {encoding: 'utf8'})
+
+        const parsed = await plugin.parse(context, file, content)
+
+        if(typeof parsed === 'string') {
+          content = parsed
+        } else if(parsed.file == 'remove') {
+          allFiles.delete(file)
+          return
+        } else if(parsed.file == 'keep') {
+          // Pass through unmodified to the next plugin, or just copy at the end
+        } else {
+          // TODO: Make sure the renamed file is iterated!
+          const c = parsed as Rename
+          allFiles.set(c.file, c.content.toString())
+          allFiles.delete(file)
+          return
+        }  
+      }
+      
+      allFiles.set(file, content)
+    }
+
+    for (const file of allFiles.keys()) {
+      // TODO: Check if file or template is newer
+      await parseFile(file)
+    }
+    
     // Copy the parsed and remaining files
-    for (const [file, content] of allFiles.entries()) {
+    const ignoreFile = hasExtension(config.ignoreExtensions)
+    for (const [file, content] of allFiles) {
       if(content) {
-        output(file, content)
+        writeFile(file, content)
       } else if(!ignoreFile(file)) {
         const output = outputFile(file)
         
@@ -208,27 +223,26 @@ const start = async (config2? : Partial<Config>) => {
   
   ///// Starting up /////////////////////////////////////////////////
 
-  const run = () => parseTemplate([compileSass, cacheBust])
-    .then(templateChanged => parseFiles(config.plugins.concat([htmlFiles]), templateChanged))
+  const run = () => parseAllFiles(config.plugins.concat([compileSass, cacheBust, htmlFiles]))
 
   return {context, run}
 }
 
 export const simplestBuild = async (config? : Partial<Config>) => {
-  const run = await start(config)
-  const config2 = run.context.config
+  const build = await start(config)
+  const config2 = build.context.config
 
   await fs.remove(config2.output)
-  return run.run()
+  return build.run()
 }
 
 export const simplestWatch = async (config? : Partial<Config>) => {
-  const run = await start(config)
-  const config2 = run.context.config
+  const build = await start(config)
+  const config2 = build.context.config
 
   const runWatch = (file : string, root : string, stat : Stats) => {
     log('Updated: ' + file)
-    run.run()
+    build.run()
   }
 
   log(c.yellow('Watching for file changes in ') + c.blue(config2.input))
@@ -243,13 +257,13 @@ export const simplestWatch = async (config? : Partial<Config>) => {
     fs.remove(path.join(config2.output, file))
   })
 
-  await run.run()
+  await build.run()
   return watcher as any
 }
 
 export const simplestDev = async (config? : Partial<Config>) => {
-  const run = await start(config)
-  const config2 = run.context.config
+  const build = await start(config)
+  const config2 = build.context.config
 
   await fs.ensureDir(config2.output)
   await simplestWatch(config)

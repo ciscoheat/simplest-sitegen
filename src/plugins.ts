@@ -23,59 +23,67 @@ const srcScripts = (root : ReturnType<typeof parse>, selector : string, attr : s
     })) as {el: HTMLElement, attr: string, file: string}[]
 }
 
+const html = ['.html', '.htm']
+
 /////////////////////////////////////////////////////////////////////
 
-export const cacheBust = async (context : Context, file : string, content : string) => {
-  const root = parse(content, {comment: true})
-  const scriptFiles = cssScripts(root).concat(jsScripts(root))
-    .filter(f => !f.file.includes('?'))
-    .filter(f => !isAbsolute(f.file))
+export const cacheBust = {
+  extensions: html,
+  parse: async (context : Context, file : string, content : string) => {
+    const root = parse(content, {comment: true})
+    const scriptFiles = cssScripts(root).concat(jsScripts(root))
+      .filter(f => !f.file.includes('?'))
+      .filter(f => !isAbsolute(f.file))
 
-  for (const {el, attr, file} of scriptFiles) {
-    const inputPath = path.join(context.config.input, file)
-    try {
-      const content = await fs.readFile(inputPath).catch(() => {
-        // Test if output exists instead of input
-        const outputPath = path.join(context.config.output, file)
-        return fs.readFile(outputPath)
-      })
-      el.setAttribute(attr, file + '?' + hash(content))
-    } catch (e) {
-      log(c.red('Warning: ') + file + ' not found, referenced in ' + context.config.template)
+    for (const {el, attr, file} of scriptFiles) {
+      const inputPath = path.join(context.config.input, file)
+      try {
+        const content = await fs.readFile(inputPath).catch(() => {
+          // Test if output exists instead of input
+          const outputPath = path.join(context.config.output, file)
+          return fs.readFile(outputPath)
+        })
+        el.setAttribute(attr, file + '?' + hash(content))
+      } catch (e) {
+        log(c.red('Warning: ') + file + ' not found, referenced in ' + context.config.template)
+      }
     }
-  }
 
-  return root.toString()
+    return root.toString()
+  }
 }
 
 /////////////////////////////////////////////////////////////////////
 
 let sass : typeof compile
 
-export const compileSass = async (context : Context, file : string, content : string) => {
-  const root = parse(content, {comment: true})
-  for (const link of cssScripts(root)) {
-    if(!(link.file.endsWith('.sass') || link.file.endsWith('.scss'))) continue
-    if(!sass) sass = (await import('sass')).default.compile
-    
-    const compiled = sass(path.join(context.config.input, link.file), context.config.sassOptions)
-    const cssFileName = path.changeExt(link.file, '.css')
+export const compileSass = {
+  extensions: html,
+  parse: async (context : Context, file : string, content : string) => {
+    const root = parse(content, {comment: true})
+    for (const link of cssScripts(root)) {
+      if(!(link.file.endsWith('.sass') || link.file.endsWith('.scss'))) continue
+      if(!sass) sass = (await import('sass')).default.compile
+      
+      const compiled = sass(path.join(context.config.input, link.file), context.config.sassOptions)
+      const cssFileName = path.changeExt(link.file, '.css')
 
-    await fs.outputFile(path.join(context.config.output, cssFileName), compiled.css)
-    link.el.setAttribute(link.attr, cssFileName)
+      await fs.outputFile(path.join(context.config.output, cssFileName), compiled.css)
+      link.el.setAttribute(link.attr, cssFileName)
 
-    if(compiled.sourceMap?.file) {
-      await fs.outputFile(path.join(context.config.output, path.changeExt(link.file, '.css.map', undefined, 8)), compiled.sourceMap.file)
+      if(compiled.sourceMap?.file) {
+        await fs.outputFile(path.join(context.config.output, path.changeExt(link.file, '.css.map', undefined, 8)), compiled.sourceMap.file)
+      }
     }
-  }
 
-  return root.toString()
+    return root.toString()
+  }
 }
 
 /////////////////////////////////////////////////////////////////////
 
 export const htmlFiles = {
-  extensions: ['.html', '.htm'],
+  extensions: html,
   parse: async (context : Context, file : string, content : string) => {
     return content.includes('<!-- /build:content -->')
       ? context.parser.processContent(content)
