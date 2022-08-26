@@ -5,11 +5,12 @@ import Templator from 'template-html'
 import fg from 'fast-glob'
 import path from 'upath'
 import c from 'ansi-colors'
-
-import { cacheBust, compileSass, htmlFiles } from './plugins.js'
 import { cwd } from 'process'
 import { Stats } from 'fs'
 import { Options } from 'browser-sync'
+
+import { log } from './utils.js'
+import { cacheBust, compileSass, htmlFiles } from './plugins.js'
 
 type TemplatePlugin = (context : Context, template : string) => Promise<string>
 
@@ -223,11 +224,11 @@ export const simplestWatch = async (config? : Config) => {
   const config2 = run.context.config
 
   const runWatch = (file : string, root : string, stat : Stats) => {
-    console.log('Updated: ' + file)
+    log('Updated: ' + file)
     run.run()
   }
 
-  console.log(c.yellow('Watching for file changes in ') + c.blue(config2.input))
+  log(c.yellow('Watching for file changes in ') + c.blue(config2.input))
 
   const sane = (await import('sane')).default
   const watcher = sane(config2.input)
@@ -235,7 +236,7 @@ export const simplestWatch = async (config? : Config) => {
   watcher.on('change', runWatch)
   watcher.on('add', runWatch)
   watcher.on('delete', (file) => {
-    console.log('Deleted: ' + file)
+    log('Deleted: ' + file)
     fs.remove(path.join(config2.output, file))
   })
 

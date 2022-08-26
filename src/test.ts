@@ -5,7 +5,6 @@ import path from 'upath'
 import fs from 'fs-extra'
 // @ts-ignore
 import colorize from '@npmcli/disparity-colors'
-
 import { simplestBuild } from './index.js'
 
 ;(async () => {

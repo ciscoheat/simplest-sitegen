@@ -1,3 +1,5 @@
+import c from 'ansi-colors'
+
 /**
  * Hash using djb2
  */
@@ -12,4 +14,9 @@
 	}
 
 	return (hash >>> 0).toString(36)
+}
+
+export const log = (value : string) => {
+	value = `[${c.blueBright('simplest')}] ${value}`
+	console.log(process.stdout.isTTY ? value : c.unstyle(value))
 }

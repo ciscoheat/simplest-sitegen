@@ -4,6 +4,7 @@ import { parse, type HTMLElement } from 'node-html-parser'
 import { compile } from 'sass'
 import c from 'ansi-colors'
 
+import { log } from './utils.js'
 import { type Context } from './index.js'
 import { hash } from './utils.js'
 
@@ -39,8 +40,7 @@ export const cacheBust = async (context : Context, template : string) => {
       })
       el.setAttribute(attr, file + '?' + hash(content))
     } catch (e) {
-      const msg = 'Warning: ' + file + ' not found, referenced in ' + context.config.template
-      console.log(process.stdout.isTTY ? c.red(msg) : msg)
+      log(c.red('Warning: ') + file + ' not found, referenced in ' + context.config.template)
     }
   }
 
