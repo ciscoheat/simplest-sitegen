@@ -7,31 +7,38 @@ import fs from 'fs-extra'
 import replace from 'replace-in-file'
 import spawn from 'cross-spawn'
 
-const log = console.log
+const log = (msg : string) => console.log(
+  process.stdout.isTTY ? msg : c.unstyle(msg)
+)
+
 const args = minimist(process.argv.slice(2), {boolean: true})
 
 process.on('uncaughtException', (err) => {
-  log(c.red('Error: ') + err.message)
+  const msg = err.message.startsWith('Error: ') ? err.message.substring('Error: '.length) : err.message
+  log(c.red('Error: ') + msg)
   process.exit(1)
 })
 
-process.on('unhandledRejection', (err) => {
-  log(c.red('Error: ') + err)
+process.on('unhandledRejection', (err : any) => {
+  err = err.toString()
+  const msg = err.startsWith('Error: ') ? err.substring('Error: '.length) : err
+  log(c.red('Error: ') + msg)
   process.exit(1)
 })
+
+/////////////////////////////////////////////////////////////////////
 
 if(args.help) {
   
 console.log(`Usage:
 
+npx simplest create  Initializes a project
 npx simplest build   Builds the site
 npx simplest         Starts a dev server`)
 
 } else {
 
   const mode = ['dev', 'build', 'watch', 'create'].find(m => m == args._[0]) || 'dev'
-
-  //console.log(import.meta.url)
 
   switch(mode) {
     case 'dev':
