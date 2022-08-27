@@ -8,23 +8,20 @@
 
 ## Don't despair, the solution is in front of you!
 
-Introducing **simplest**. It's true, it really is the simplest static sitegen. Only HTML needed. No markdown, no yaml, no template languages, no huge documentation, and a one-step build process. Make a new project and install it immediately:
+Introducing **simplest**. It's true, it really is the simplest static sitegen, while still being quite able. 
+
+Only HTML needed. No markdown, no yaml, no template languages, no huge documentation, and a one-step build process. Create a new project with it immediately:
 
 ```
-mkdir new-project
-cd new-project
-npm init es6
-npm i simplest-sitegen
-mkdir src
+npx simplest-sitegen create my-project
+cd my-project
 ```
 
-The `npm init es6` is for `"type": "module"` to be included in the `package.json` file. You can add that line manually and use the normal `npm init` if you want. 
-
-([pnpm](https://pnpm.io/) is recommended instead of npm though!)
+(If you dislike scaffolding, manual installation instructions is at the end of this document.)
 
 ## No scaffolding except one file: `src/template.html`
 
-That's right, there won't be fifteen files in your project after running a cryptic package command. You only need to create `src/template.html` yourself, which is the template that your other html files will be based on. You can use any [html5 boilerplate](https://www.google.com/search?q=html5+boilerplate) for example, but here's a simple one:
+That's right, there won't be fifteen files in your project after running a cryptic package command. The only file you need is `src/template.html`, which is the template that your other html files will be based on. Open it up in your editor of choice. It will look similar to this:
 
 **src/template.html**
 ```html
@@ -105,7 +102,7 @@ Just make sure that the source file is in the correct directory as the output, i
 
 You can put a `template.html` in any subdirectory, and all html files in that directory and below will use that template instead of the top-level one.
 
-## This is great, but I still want to use Markdown!
+## Great, but I still want to use Markdown
 
 All right, that's simple enough for it to be included. This is the corresponding `.md` file for the index page in the example above:
 
@@ -117,7 +114,7 @@ title: Simplest
 # The simplest site generator is finally here!
 ```
 
-Just be aware that it's unspecified which file will take precedence when only the extension differ. So don't create a `template.md` file for example.
+Just be aware that it's unspecified which file will take precedence when only the extension differ. So having an `index.html` in the same directory as `index.md` will probably cause trouble.
 
 ## Configuration
 
@@ -129,10 +126,10 @@ export default {
   output: "build",
   template: "template.html",
   ignoreExtensions: [".sass", ".scss"], // Won't be copied to the output dir
-  passThrough: [], // Glob patterns (in input directory) that will skip parsing for matched files
+  passThrough: [], // Glob patterns (in input directory) that will skip parsing
   devServerOptions: { ui: false, notify: false }, // Extra Browsersync options
   sassOptions: { style: "compressed" }, // Extra sass options
-  markdownOptions: {} // Extra markdown-it options
+  markdownOptions: {}, // Extra markdown-it options
   plugins: [], // Will be documented on popular request
 }
 ```
@@ -145,6 +142,24 @@ export default {
 ## Any limitations?
 
 Sure, if you want to use a framework like Svelte, Vue, etc, you're better off using [Vite](https://vitejs.dev/). And if you want more advanced CMS/blog features with advanced templating, look at the [jamstack generators](https://jamstack.org/generators/) again. But for non-complicated sites it should be fine, and you can even add some CMS capabilities with a [headless CMS](https://jamstack.org/headless-cms/).
+
+## If you dislike scaffolding
+
+Here's how to create a project manually:
+
+```
+mkdir new-project
+cd new-project
+npm init es6
+npm i simplest-sitegen
+mkdir src
+```
+
+The `npm init es6` is for `"type": "module"` to be included in the `package.json` file. You can add that line manually and use the normal `npm init` if you want. 
+
+([pnpm](https://pnpm.io/) is recommended instead of npm though!)
+
+After this, create a `src/template.html` file, and you're set.
 
 ## Feedback wanted
 

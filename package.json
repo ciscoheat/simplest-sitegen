@@ -1,6 +1,6 @@
 {
   "name": "simplest-sitegen",
-  "version": "0.11.3",
+  "version": "0.12.0",
   "author": "",
   "description": "The simplest static sitegen there is. Build a modern, fully working website with only HTML.",
   "repository": {
@@ -13,7 +13,7 @@
   "exports": "./dist/index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "pnpm tsc-watch --noClear --onSuccess \"pnpm test\"",
+    "dev": "pnpm tsc-watch --noClear --onSuccess \"pnpm start create\"",
     "prepublishOnly": "tsc",
     "start": "node dist/cli.js",
     "test": "node dist/test.js",
@@ -31,13 +31,16 @@
   "dependencies": {
     "ansi-colors": "^4.1.3",
     "browser-sync": "^2.27.10",
+    "cross-spawn": "^7.0.3",
     "debug": "^4.3.4",
+    "enquirer": "^2.3.6",
     "fast-glob": "^3.2.11",
     "fs-extra": "^10.1.0",
     "gray-matter": "^4.0.3",
     "markdown-it": "^13.0.1",
     "minimist": "^1.2.6",
     "node-html-parser": "5.4.2-0",
+    "replace-in-file": "^6.3.5",
     "sane": "^5.0.1",
     "template-html": "^0.3.2",
     "upath": "^2.0.1"
