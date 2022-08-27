@@ -13,7 +13,7 @@
   "exports": "./dist/index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "pnpm tsc-watch --noClear --onSuccess \"pnpm start create\"",
+    "dev": "pnpm tsc-watch --noClear --onSuccess \"pnpm test\"",
     "prepublishOnly": "tsc",
     "start": "node dist/cli.js",
     "test": "node dist/test.js",
