@@ -133,6 +133,9 @@ const start = async (config2? : Partial<Config>) => {
     const outputFileName = (file : string) => path.join(config.output, file.slice(config.input.length))
     const writeFile = (file : string, content : string | Uint8Array) => fs.outputFile(outputFileName(file), content)
 
+    const allPluginExtensions = new Set(plugins.flatMap(p => p.extensions))
+    const willUsePlugin = hasExtension(Array.from(allPluginExtensions))
+
     const usePluginMap = new Map(plugins2.map(p => [p, hasExtension(p.extensions)]))
     const usePlugin = (plugin : FilesPlugin, file : string) => usePluginMap.get(plugin)!(file)
     
@@ -219,15 +222,17 @@ const start = async (config2? : Partial<Config>) => {
     const ignoreFile = hasExtension(config.ignoreExtensions)
     
     for (const file of allFiles.keys()) {
-      if(passThroughFiles.has(file) || ignoreFile(file)) continue      
+      if(passThroughFiles.has(file) || ignoreFile(file) || !willUsePlugin(file)) continue
       await parseFile(file)
     }
     
     // Copy the parsed and remaining files
     for (const [file, content] of allFiles) {
       if(content) {
+        //log('Parsed: ' + file)
         writeFile(file, content)
       } else if(!ignoreFile(file)) {
+        //log('Copy: ' + file)
         const output = outputFileName(file)
         
         if(await isNewer(file, output)) {
