@@ -123,14 +123,12 @@ const start = async (config2? : Partial<Config>) => {
   const parseAllFiles = (async (plugins : FilesPlugin[]) => {
     const NOT_PARSED = ''
 
-    const fileList = await fg(path.join(config.input, `/**/*.*`))
+    const fileList = await fg(path.join(config.input, `/**/*.*`))    
     const passThroughFiles = new Set(await fg(config.passThrough.map(glob => path.join(config.input, glob))))
     const allFiles = new Map<string, string>(fileList.map(f => [f, NOT_PARSED]))
     const plugins2 = [...plugins]
 
-    // Prevent template from being parsed, since it has already been parsed in its own plugins.
-    // This also makes it cacheable, because otherwise it would be overwritten here.
-    allFiles.delete(config.template)
+    // TODO: Issue a warning if files only differ by extension
 
     const outputFileName = (file : string) => path.join(config.output, file.slice(config.input.length))
     const writeFile = (file : string, content : string | Uint8Array) => fs.outputFile(outputFileName(file), content)
@@ -219,9 +217,9 @@ const start = async (config2? : Partial<Config>) => {
     }
 
     const ignoreFile = hasExtension(config.ignoreExtensions)
-
+    
     for (const file of allFiles.keys()) {
-      if(passThroughFiles.has(file) || ignoreFile(file)) continue
+      if(passThroughFiles.has(file) || ignoreFile(file)) continue      
       await parseFile(file)
     }
     

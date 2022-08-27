@@ -117,7 +117,7 @@ title: Simplest
 # The simplest site generator is finally here!
 ```
 
-Just be aware that it may not be so simple with filenames, it's unspecified which file will take precedence when only the extensions differ. A warning will be emitted in that case.
+Just be aware that it's unspecified which file will take precedence when only the extension differ. So don't create a `template.md` file for example.
 
 ## Configuration
 
