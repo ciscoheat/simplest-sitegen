@@ -105,6 +105,20 @@ Just make sure that the source file is in the correct directory as the output, i
 
 You can put a `template.html` in any subdirectory, and all html files in that directory and below will use that template instead of the top-level one.
 
+## This is great, but I still want to use Markdown!
+
+All right, that's simple enough for it to be included. This is the corresponding `.md` file for the index page in the example above:
+
+**src/index.md**
+```
+---
+title: Simplest
+---
+# The simplest site generator is finally here!
+```
+
+Just be aware that it may not be so simple with filenames, it's unspecified which file will take precedence when only the extensions differ. A warning will be emitted in that case.
+
 ## Configuration
 
 If you need to complicate things, it's understandable, things aren't always as simple as one would like. Fortunately it's not too hard to configure simplest. Create a `simplest.config.js` file in your project top directory, with any of the following properties:
@@ -117,13 +131,15 @@ export default {
   ignoreExtensions: [".sass", ".scss"], // Won't be copied to the output dir
   passThrough: [], // Glob patterns (in input directory) that will skip parsing for matched files
   devServerOptions: { ui: false, notify: false }, // Extra Browsersync options
-  sassOptions: { style: "compressed" } // Extra sass options
+  sassOptions: { style: "compressed" }, // Extra sass options
+  markdownOptions: {} // Extra markdown-it options
   plugins: [], // Will be documented on popular request
 }
 ```
 
 - Browsersync options are listed [here](https://browsersync.io/docs/options)
 - Sass options are listed [here](https://sass-lang.com/documentation/js-api/interfaces/Options)
+- Markdown-it options are listed [here](https://www.npmjs.com/package/markdown-it#init-with-presets-and-options)
 - Glob patterns are available [here](https://github.com/mrmlnc/fast-glob#pattern-syntax).
 
 ## Any limitations?

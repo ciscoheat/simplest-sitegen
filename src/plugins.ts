@@ -3,6 +3,8 @@ import fs from 'fs-extra'
 import { parse, type HTMLElement } from 'node-html-parser'
 import { compile } from 'sass'
 import c from 'ansi-colors'
+import matter from 'gray-matter'
+import md from 'markdown-it'
 
 import { log } from './utils.js'
 import { type Context } from './index.js'
@@ -10,7 +12,7 @@ import { hash } from './utils.js'
 
 const isAbsolute = (url : string) => /^(?:[a-z+]+:)?\/\//i.test(url)
 
-const resolveUrl = (url : string, basePath : string, srcFile : string) => {
+const resolvePath = (url : string, basePath : string, srcFile : string) => {
   if(url.startsWith('/'))
     return path.join(basePath, url)
   else {
@@ -46,11 +48,11 @@ export const cacheBust = {
     if(!scriptFiles.length) return content
 
     for (const {el, attr, file} of scriptFiles) {
-      const inputPath = resolveUrl(file, context.config.input, srcFile)
+      const inputPath = resolvePath(file, context.config.input, srcFile)
       try {
         const content = await fs.readFile(inputPath).catch(() => {
           // Test if output exists instead of input
-          const outputPath = resolveUrl(file, context.config.output, srcFile)
+          const outputPath = resolvePath(file, context.config.output, srcFile)
           return fs.readFile(outputPath)
         })
         el.setAttribute(attr, file + '?' + hash(content))
@@ -79,14 +81,14 @@ export const compileSass = {
       if(!(link.file.endsWith('.sass') || link.file.endsWith('.scss'))) continue
       if(!sass) sass = (await import('sass')).default.compile
       
-      const compiled = sass(resolveUrl(link.file, context.config.input, srcFile), context.config.sassOptions as any)
+      const compiled = sass(resolvePath(link.file, context.config.input, srcFile), context.config.sassOptions as any)
       const cssFileName = path.changeExt(link.file, '.css')
 
-      await fs.outputFile(resolveUrl(cssFileName, context.config.output, srcFile), compiled.css)
+      await fs.outputFile(resolvePath(cssFileName, context.config.output, srcFile), compiled.css)
       link.el.setAttribute(link.attr, cssFileName)
 
       if(compiled.sourceMap?.file) {
-        const mapPath = resolveUrl(
+        const mapPath = resolvePath(
           path.changeExt(link.file, '.css.map', undefined, 8), 
           context.config.output, 
           srcFile
@@ -107,5 +109,21 @@ export const htmlFiles = {
     return content.includes('<!-- /build:content -->')
       ? context.parser.processContent(content)
       : content
+  }
+}
+
+/////////////////////////////////////////////////////////////////////
+
+export const markdown = {
+  extensions: ['.md'],
+  parse: async (context : Context, file : string, content : string) => {
+    const frontMatter = matter(content)
+    const parsed = md(context.config.markdownOptions as any).render(frontMatter.content)
+    const vars = Object.entries(frontMatter.data).map(([key, value]) => `<!-- build:${key} -->${value}<!-- /build:${key} -->`)
+
+    return {
+      file: path.changeExt(file, '.html'), 
+      content: vars.join("\n") + `\n<!-- build:content -->${parsed}<!-- /build:content -->`
+    }
   }
 }
