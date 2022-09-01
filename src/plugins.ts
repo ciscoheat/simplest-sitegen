@@ -38,7 +38,6 @@ const html = ['.html', '.htm']
 /////////////////////////////////////////////////////////////////////
 
 export const cacheBust = {
-  extensions: html,
   parse: async (context : Context, srcFile : string, content : string) => {
     const root = parse(content, {comment: true})
     const scriptFiles = cssScripts(root).concat(jsScripts(root))
@@ -70,7 +69,6 @@ export const cacheBust = {
 let sass : typeof compile
 
 export const compileSass = {
-  extensions: html,
   parse: async (context : Context, srcFile : string, content : string) => {
     const root = parse(content, {comment: true})
     const cssRefs = cssScripts(root)
@@ -104,7 +102,6 @@ export const compileSass = {
 /////////////////////////////////////////////////////////////////////
 
 export const htmlFiles = {
-  extensions: html,
   parse: async (context : Context, file : string, content : string) => {
     return content.includes('<!-- /build:content -->')
       ? context.parser.processContent(content)

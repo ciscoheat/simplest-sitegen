@@ -1,6 +1,6 @@
 {
   "name": "simplest-sitegen",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "author": "",
   "description": "The simplest static sitegen there is. Build a modern, fully working website with only HTML.",
   "repository": {
@@ -54,12 +54,12 @@
     "@types/fs-extra": "^9.0.13",
     "@types/markdown-it": "^12.2.3",
     "@types/minimist": "^1.2.2",
-    "@types/node": "^18.7.13",
+    "@types/node": "^18.7.14",
     "@types/sane": "^2.0.1",
     "diff": "^5.1.0",
     "dir-compare": "^4.0.0",
     "nodemon": "^2.0.19",
-    "sass": "^1.54.5",
+    "sass": "^1.54.8",
     "ts-node": "^10.9.1",
     "tsc-watch": "^5.0.3",
     "typescript": "^4.8.2"

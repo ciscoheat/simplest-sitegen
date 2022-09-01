@@ -8,8 +8,9 @@ import colorize from '@npmcli/disparity-colors'
 import { simplestBuild } from './index.js'
 
 ;(async () => {
-  await fs.emptyDir("build")
+  await fs.remove("build")
   await simplestBuild()
+
   const result = await dircompare.compare("expected", "build", {compareContent: true})
   if(!result.same) {
     console.log(ansi.red('  Test failure'))

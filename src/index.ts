@@ -29,11 +29,14 @@ interface Keep {
 
 type ParsedFile = string | Rename | Remove | Keep // | (Rename | Remove | Keep)[]
 
-type FileParser = (context : Context, file : string, content : string) => Promise<ParsedFile>
+type FileParseFunction = (context : Context, file : string, content : string) => Promise<ParsedFile>
 
-type FilesPlugin = {
-  extensions: string[],
-  parse: FileParser
+type FilesParser = {
+  parse: FileParseFunction
+}
+
+type FilesPlugin = FilesParser & {
+  extensions: string[]
 }
 
 type HtmlParser = {
@@ -45,12 +48,14 @@ const defaultConfig = {
   input: "src" as string,
   output: "build" as string,
   template: "template.html" as string,
+  htmlExtensions: [".html", ".htm"],
   ignoreExtensions: [".sass", ".scss"] as string[],
   passThrough: [],
   devServerOptions: { ui: false, notify: false } as Options,
   sassOptions: {style: "compressed"},
   markdownOptions: {},
-  plugins: [] as FilesPlugin[]
+  plugins: [] as (FilesPlugin | FilesParser)[],
+  verbose: false as boolean
 }
 
 export type Config = typeof defaultConfig
@@ -67,6 +72,7 @@ const d = debug('simplest')
 const start = async (config2? : Partial<Config>) => {
   const config = Object.assign({}, defaultConfig, config2)
 
+  {
   try {
     const userConfigFile = path.join(cwd(), 'simplest.config.js')
     await fs.access(userConfigFile)
@@ -84,10 +90,12 @@ const start = async (config2? : Partial<Config>) => {
   if(config2)
     Object.assign(config, config2)
 
+  }
+      
   const baseTemplate = path.join(config.input, config.template)
 
-  try {
     // Sanity checks
+  try {
     await fs.access(baseTemplate)
   } catch(e) {
     throw new Error(`Template file ${baseTemplate} not found!`)
@@ -105,22 +113,23 @@ const start = async (config2? : Partial<Config>) => {
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  const isNewer = (src : string, dest : string) => Promise.all([fs.stat(src), fs.stat(dest)])
-    .then(([src1, dest1]) => {
-      const output : boolean = src1.mtimeMs > dest1.mtimeMs
-      //d(`${path.basename(src)}: ${output ? 'newer than output' : 'NOT newer than output'}`)
-      return output
-    })
-    .catch(e => { 
-      //d(`${path.basename(src)}: output didn't exist`)
+  const isNewer = async (src : string, dest : string) => {
+    let dest1 : Stats
+    try {
+      dest1 = await fs.stat(dest)
+    } catch(e) {
       return true
-    })
+    }
+
+    const src1 = await fs.stat(src)
+    return src1.mtimeMs > dest1.mtimeMs
+  }
 
   const hasExtension = (exts : string[]) => (input : string) => exts.some(ext => input.endsWith(`${ext}`))
 
   ///////////////////////////////////////////////////////////
 
-  const parseAllFiles = (async (plugins : FilesPlugin[]) => {
+  const parseAllFiles = async (plugins : FilesPlugin[]) => {
     const NOT_PARSED = ''
 
     const fileList = await fg(path.join(config.input, `/**/*.*`))    
@@ -131,7 +140,7 @@ const start = async (config2? : Partial<Config>) => {
     // TODO: Issue a warning if files only differ by extension
 
     const outputFileName = (file : string) => path.join(config.output, file.slice(config.input.length))
-    const writeFile = (file : string, content : string | Uint8Array) => fs.outputFile(outputFileName(file), content)
+    const writeFile = async (file : string, content : string | Uint8Array) => fs.outputFile(outputFileName(file), content)
 
     const allPluginExtensions = new Set(plugins.flatMap(p => p.extensions))
     const willUsePlugin = hasExtension(Array.from(allPluginExtensions))
@@ -168,7 +177,9 @@ const start = async (config2? : Partial<Config>) => {
       if(!templateChanged) {
         try {
           currentTemplate = await fs.readFile(templateOutputFile, {encoding: 'utf8'})
-        } catch(e) {}
+        } catch(e) {
+          
+        }
       }
   
       if(currentTemplate != templateContent) {
@@ -229,10 +240,10 @@ const start = async (config2? : Partial<Config>) => {
     // Copy the parsed and remaining files
     for (const [file, content] of allFiles) {
       if(content) {
-        //log('Parsed: ' + file)
-        writeFile(file, content)
+        if(config.verbose) log('Parsed and copied: ' + file)
+        await writeFile(file, content)
       } else if(!ignoreFile(file)) {
-        //log('Copy: ' + file)
+        if(config.verbose) log('Copied: ' + file)
         const output = outputFileName(file)
         
         if(await isNewer(file, output)) {
@@ -241,11 +252,23 @@ const start = async (config2? : Partial<Config>) => {
         }
       }
     }
-  })
+  }
   
   ///// Starting up /////////////////////////////////////////////////
 
-  const run = () => parseAllFiles(config.plugins.concat([markdown, compileSass, cacheBust, htmlFiles]))
+  const setExtension = (p : FilesParser | FilesPlugin) => {
+    return 'extensions' in p
+      ? p
+      : Object.assign(p, {extensions: config.htmlExtensions})
+  }
+
+  const run = async () => {
+    await parseAllFiles(
+      config.plugins.concat([ 
+        markdown, compileSass, cacheBust, htmlFiles 
+      ]).map(setExtension)
+    )
+  }
 
   return {context, run}
 }
@@ -253,8 +276,8 @@ const start = async (config2? : Partial<Config>) => {
 export const simplestBuild = async (config? : Partial<Config>) => {
   const build = await start(config)
   const config2 = build.context.config
-
   await fs.remove(config2.output)
+
   return build.run()
 }
 

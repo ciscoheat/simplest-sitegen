@@ -9,7 +9,7 @@ specifiers:
   '@types/fs-extra': ^9.0.13
   '@types/markdown-it': ^12.2.3
   '@types/minimist': ^1.2.2
-  '@types/node': ^18.7.13
+  '@types/node': ^18.7.14
   '@types/sane': ^2.0.1
   ansi-colors: ^4.1.3
   browser-sync: ^2.27.10
@@ -27,7 +27,7 @@ specifiers:
   nodemon: ^2.0.19
   replace-in-file: ^6.3.5
   sane: ^5.0.1
-  sass: ^1.54.5
+  sass: ^1.54.8
   template-html: ^0.3.2
   ts-node: ^10.9.1
   tsc-watch: ^5.0.3
@@ -60,13 +60,13 @@ devDependencies:
   '@types/fs-extra': 9.0.13
   '@types/markdown-it': 12.2.3
   '@types/minimist': 1.2.2
-  '@types/node': 18.7.13
+  '@types/node': 18.7.14
   '@types/sane': 2.0.1
   diff: 5.1.0
   dir-compare: 4.0.0
   nodemon: 2.0.19
-  sass: 1.54.5
-  ts-node: 10.9.1_hwinnrf7y5nyyzygpj45jmvjia
+  sass: 1.54.8
+  ts-node: 10.9.1_tphhiizkxv2hzwkunblc3hbmra
   tsc-watch: 5.0.3_typescript@4.8.2
   typescript: 4.8.2
 
@@ -156,7 +156,7 @@ packages:
     resolution: {integrity: sha512-HIiI438D8q/DXFhdc2JELRMPtuHmR+0q+QNwP/mQoItHvPi7LK+bkZC7amKrSpnB2t4ct8BRd32LtOfd6TMNIw==}
     dependencies:
       '@types/micromatch': 2.3.31
-      '@types/node': 18.7.13
+      '@types/node': 18.7.14
       '@types/serve-static': 1.15.0
       chokidar: 3.5.3
     dev: true
@@ -176,7 +176,7 @@ packages:
   /@types/cross-spawn/6.0.2:
     resolution: {integrity: sha512-KuwNhp3eza+Rhu8IFI5HUXRP0LIhqH5cAjubUvGXXthh4YYBuP2ntwEX+Cz8GJoZUHlKo247wPWOfA9LYEq4cw==}
     dependencies:
-      '@types/node': 18.7.13
+      '@types/node': 18.7.14
     dev: true
 
   /@types/debug/4.1.7:
@@ -192,7 +192,7 @@ packages:
   /@types/fs-extra/9.0.13:
     resolution: {integrity: sha512-nEnwB++1u5lVDM2UI4c1+5R+FYaKfaAzS4OococimjVm3nQw3TuzH5UNsocrcTBbhnerblyHj4A49qXbIiZdpA==}
     dependencies:
-      '@types/node': 18.7.13
+      '@types/node': 18.7.14
     dev: true
 
   /@types/linkify-it/3.0.2:
@@ -228,8 +228,8 @@ packages:
     resolution: {integrity: sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==}
     dev: true
 
-  /@types/node/18.7.13:
-    resolution: {integrity: sha512-46yIhxSe5xEaJZXWdIBP7GU4HDTG8/eo0qd9atdiL+lFpA03y8KS+lkTN834TWJj5767GbWv4n/P6efyTFt1Dw==}
+  /@types/node/18.7.14:
+    resolution: {integrity: sha512-6bbDaETVi8oyIARulOE9qF1/Qdi/23z6emrUh0fNJRUmjznqrixD4MpGDdgOFk5Xb0m2H6Xu42JGdvAxaJR/wA==}
 
   /@types/parse-glob/3.0.29:
     resolution: {integrity: sha512-OFwMPH5eJOhtwR92GMjTNWukaKTdWQC12cBgRvrTQl5CwhruSq6734wi1CTSh5Qjm/pMJWaKOOPKZOp6FpIkXQ==}
@@ -238,14 +238,14 @@ packages:
   /@types/sane/2.0.1:
     resolution: {integrity: sha512-sxnbS16SuLtncoqmGV0+uKM95nx3EG6Dxr0I9ZvGhVEI3MWSSJxmeYwfZbi5zw9gqJBO5m1YzjmjakGmihPLmA==}
     dependencies:
-      '@types/node': 18.7.13
+      '@types/node': 18.7.14
     dev: true
 
   /@types/serve-static/1.15.0:
     resolution: {integrity: sha512-z5xyF6uh8CbjAu9760KDKsH2FcDxZ2tFCsA4HIMWE6IkiYMXfVoa+4f9KX+FN0ZLsaMw1WNG2ETLA6N+/YA+cg==}
     dependencies:
       '@types/mime': 3.0.1
-      '@types/node': 18.7.13
+      '@types/node': 18.7.14
     dev: true
 
   /abbrev/1.1.1:
@@ -599,7 +599,7 @@ packages:
       supports-color:
         optional: true
     dependencies:
-      ms: 2.1.2
+      ms: 2.1.3
       supports-color: 5.5.0
     dev: true
 
@@ -763,7 +763,7 @@ packages:
     dependencies:
       '@types/cookie': 0.4.1
       '@types/cors': 2.8.12
-      '@types/node': 18.7.13
+      '@types/node': 18.7.14
       accepts: 1.3.8
       base64id: 2.0.0
       cookie: 0.4.2
@@ -1297,6 +1297,11 @@ packages:
 
   /ms/2.1.2:
     resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
+    dev: false
+
+  /ms/2.1.3:
+    resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
+    dev: true
 
   /negotiator/0.6.3:
     resolution: {integrity: sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==}
@@ -1564,8 +1569,8 @@ packages:
       walker: 1.0.8
     dev: false
 
-  /sass/1.54.5:
-    resolution: {integrity: sha512-p7DTOzxkUPa/63FU0R3KApkRHwcVZYC0PLnLm5iyZACyp15qSi32x7zVUhRdABAATmkALqgGrjCJAcWvobmhHw==}
+  /sass/1.54.8:
+    resolution: {integrity: sha512-ib4JhLRRgbg6QVy6bsv5uJxnJMTS2soVcCp9Y88Extyy13A8vV0G1fAwujOzmNkFQbR3LvedudAMbtuNRPbQww==}
     engines: {node: '>=12.0.0'}
     hasBin: true
     dependencies:
@@ -1876,7 +1881,7 @@ packages:
       nopt: 1.0.10
     dev: true
 
-  /ts-node/10.9.1_hwinnrf7y5nyyzygpj45jmvjia:
+  /ts-node/10.9.1_tphhiizkxv2hzwkunblc3hbmra:
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
     hasBin: true
     peerDependencies:
@@ -1895,7 +1900,7 @@ packages:
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.3
-      '@types/node': 18.7.13
+      '@types/node': 18.7.14
       acorn: 8.8.0
       acorn-walk: 8.2.0
       arg: 4.1.3

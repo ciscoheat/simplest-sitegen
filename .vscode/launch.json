@@ -1,20 +1,13 @@
 {
   "configurations": [
     {
-      "name": "Debug simplest",
-      "program": "${workspaceFolder}/dist/cli.js",
+      "name": "Debug tests",
       "request": "launch",
-      "args": ["build"],
-      "skipFiles": [
-        "<node_internals>/**"
+      "runtimeArgs": [
+        "run-script",
+        "test"
       ],
-      "type": "node"
-    },
-    {
-      "name": "Debug simplestWatch",
-      "program": "${workspaceFolder}/dist/cli.js",
-      "args": ["watch"],
-      "request": "launch",
+      "runtimeExecutable": "npm",
       "skipFiles": [
         "<node_internals>/**"
       ],

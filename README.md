@@ -124,13 +124,15 @@ If you need to complicate things, it's understandable, things aren't always as s
 export default {
   input: "src",
   output: "build",
-  template: "template.html",
+  template: "template.html", // Template file(s) to look for
+  htmlExtensions: [".html", ".htm"], // What files to parse for HTML content
   ignoreExtensions: [".sass", ".scss"], // Won't be copied to the output dir
-  passThrough: [], // Glob patterns (in input directory) that will skip parsing
+  passThrough: [], // Glob patterns (relative input) that will skip parsing
   devServerOptions: { ui: false, notify: false }, // Extra Browsersync options
   sassOptions: { style: "compressed" }, // Extra sass options
   markdownOptions: {}, // Extra markdown-it options
   plugins: [], // Will be documented on popular request
+  verbose: false
 }
 ```
 
@@ -142,6 +144,45 @@ export default {
 ## Any limitations?
 
 Sure, if you want to use a framework like Svelte, Vue, etc, you're better off using [Vite](https://vitejs.dev/). And if you want more advanced CMS/blog features with advanced templating, look at the [jamstack generators](https://jamstack.org/generators/) again. But for non-complicated sites it should be fine, and you can even add some CMS capabilities with a [headless CMS](https://jamstack.org/headless-cms/).
+
+## Server-side power with PHP
+
+Since PHP webhosting is cheap and easy, you can add quite a powerful server-side capability to the site by parsing PHP files, while using the built-in PHP dev server to keep the hot reload capabilities. Configure it like this:
+
+**simplest.config.js**
+
+```js
+export default {
+  htmlExtensions: [".html", ".htm", ".php"],
+  devServerOptions: { 
+    ui: false, notify: false, 
+    server: undefined, 
+    proxy: "127.0.0.1:3001" 
+  }
+}
+```
+
+Then start the `php` dev server (make sure [PHP is installed](https://www.php.net/downloads.php) on your system first):
+
+```
+php -S 127.0.0.1:3001 -t build
+```
+
+With this, you can start using PHP files! Start `npx simplest` to confirm that the Browsersync proxy works, then replace `src/index.html` with this file to test:
+
+**src/index.php**
+
+```php
+<!-- build:title -->PHP Powered site!<!-- /build:title -->
+<!-- build:content -->
+<h1>PHP test</h1>
+<ul>
+<?php foreach(array("A", "B", "C") as $char): ?>
+  <li><b><?php echo $char ?>:</b> Php works</li>
+<?php endforeach; ?>
+</ul>
+<!-- /build:content -->
+```
 
 ## If you dislike scaffolding
 
