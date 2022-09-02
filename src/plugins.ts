@@ -37,8 +37,13 @@ const html = ['.html', '.htm']
 
 /////////////////////////////////////////////////////////////////////
 
+const cacheMap = new WeakMap<Context, Map<string, string>>()
+
 export const cacheBust = {
   parse: async (context : Context, srcFile : string, content : string) => {
+    if(!cacheMap.has(context)) cacheMap.set(context, new Map())
+    const cached = cacheMap.get(context)!
+
     const root = parse(content, {comment: true})
     const scriptFiles = cssScripts(root).concat(jsScripts(root)).concat(imgLinks(root))
       .filter(f => !f.file.includes('?'))
@@ -52,19 +57,29 @@ export const cacheBust = {
       // Need to trim filename, since beginning/ending spaces in filename attributes are ok(!)
       file = file.trim()
       const inputPath = resolvePath(file, context.config.input, srcFile)
-      try {
+
+      if(cached.has(inputPath)) {
+        //console.log('Cached: ' + inputPath)
+        el.setAttribute(attr, cached.get(inputPath)!)
+      } else try {
         const content = await fs.readFile(inputPath).catch(() => {
           // Test if output exists instead of input
           const outputPath = resolvePath(file, context.config.output, srcFile)
           return fs.readFile(outputPath)
         })
-        el.setAttribute(attr, file + '?' + hash(content))
+        
+        const hashedFile = file + '?' + hash(content)
+        
+        cached.set(inputPath, hashedFile)
+        el.setAttribute(attr, hashedFile)
       } catch (e) {
         log(c.red('Warning: ') + c.magenta(file) + ' not found, referenced in ' + c.magenta(srcFile))
       }
     }
     
-    return root.toString()
+    const output = root.toString()
+    cached.set(srcFile, output)
+    return output
   }
 }
 
