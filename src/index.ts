@@ -290,7 +290,7 @@ export const simplestWatch = async (config? : Partial<Config>) => {
     build.run()
   }
 
-  log('Watching for file changes in ' + c.blue(config2.input))
+  log('Watching for file changes in ' + c.magenta(config2.input))
 
   const sane = (await import('sane')).default
   const watcher = sane(config2.input)

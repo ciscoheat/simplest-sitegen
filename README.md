@@ -13,8 +13,7 @@ Introducing **simplest**. It's true, it really is the simplest static sitegen, w
 Only HTML needed. No markdown, no yaml, no template languages, no huge documentation, and a one-step build process. Create a new project with it immediately:
 
 ```
-npx simplest-sitegen create my-project
-cd my-project
+npm create simplest-sitegen
 ```
 
 (If you dislike scaffolding, manual installation instructions is at the end of this document.)
