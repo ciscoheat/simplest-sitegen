@@ -138,8 +138,8 @@ export default {
   output: "build",
   template: "template.html", // Template file(s) to look for
   htmlExtensions: [".html", ".htm"], // What files to parse for HTML content
-  ignoreExtensions: [".sass", ".scss"], // Won't be copied to the output dir
-  passThrough: [], // Glob patterns (relative input) that will skip parsing
+  ignoreExtensions: [".sass", ".scss", ".pug"], // Won't be copied to the output dir
+  passThrough: [], // Glob patterns (relative to input dir) that will skip parsing
   devServerOptions: { ui: false, notify: false }, // Extra Browsersync options
   sassOptions: { style: "compressed" }, // Extra sass options
   markdownOptions: {}, // Extra markdown-it options
@@ -197,6 +197,8 @@ With this, you can start using PHP files! Start `npx simplest` to confirm that t
 </ul>
 <!-- /build:content -->
 ```
+
+If you want to add a PHP framework to the site, exclude it from parsing using the `passThrough` configuration option.
 
 ## If you dislike scaffolding
 
