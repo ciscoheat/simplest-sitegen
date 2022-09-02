@@ -46,9 +46,11 @@ export const cacheBust = {
 
     if(!scriptFiles.length) return content
 
-    for (const {el, attr, file} of scriptFiles) {
+    for (let {el, attr, file} of scriptFiles) {
       if(file.startsWith('data:')) continue
 
+      // Need to trim filename, since beginning/ending spaces in filename attributes are ok(!)
+      file = file.trim()
       const inputPath = resolvePath(file, context.config.input, srcFile)
       try {
         const content = await fs.readFile(inputPath).catch(() => {
