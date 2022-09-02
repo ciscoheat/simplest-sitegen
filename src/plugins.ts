@@ -47,8 +47,8 @@ export const cacheBust = {
     if(!scriptFiles.length) return content
 
     for (const {el, attr, file} of scriptFiles) {
-      if(attr.startsWith('data:')) continue
-      
+      if(file.startsWith('data:')) continue
+
       const inputPath = resolvePath(file, context.config.input, srcFile)
       try {
         const content = await fs.readFile(inputPath).catch(() => {
