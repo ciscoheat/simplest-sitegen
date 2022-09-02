@@ -75,11 +75,14 @@ export const compileSass = {
 
     if(!cssRefs.length) return content
 
+    const parsedFiles : any[] = []
+
     for (const link of cssRefs) {
       if(!(link.file.endsWith('.sass') || link.file.endsWith('.scss'))) continue
       if(!sass) sass = (await import('sass')).default.compile
       
-      const compiled = sass(resolvePath(link.file, context.config.input, srcFile), context.config.sassOptions as any)
+      const inputFile = resolvePath(link.file, context.config.input, srcFile)
+      const compiled = sass(inputFile, context.config.sassOptions as any)
       const cssFileName = path.changeExt(link.file, '.css')
 
       await fs.outputFile(resolvePath(cssFileName, context.config.output, srcFile), compiled.css)
@@ -93,9 +96,11 @@ export const compileSass = {
         )
         await fs.outputFile(mapPath, compiled.sourceMap.file)
       }
+
+      parsedFiles.push({action: 'remove' as const, file: inputFile})
     }
 
-    return root.toString()
+    return [root.toString()].concat(parsedFiles)
   }
 }
 
@@ -142,7 +147,7 @@ export const compilePug = {
       match => `<!-- build:${match[1]} -->${JSON.parse(match[2])}<!-- /build:${match[1]} -->`
     ) 
 
-    const output = pug.render(content)
+    const output = pug.render(content, context.config.pugOptions)
 
     return {
       file: path.changeExt(file, '.html'), 

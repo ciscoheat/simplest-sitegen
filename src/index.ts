@@ -22,12 +22,7 @@ interface Remove {
   action: 'remove'
 }
 
-interface Keep {
-  file: string
-  action: 'keep'
-}
-
-type ParsedFile = string | Rename | Remove | Keep // | (Rename | Remove | Keep)[]
+type ParsedFile = string | Rename | Remove | (string | Rename | Remove)[]
 
 type FileParseFunction = (context : Context, file : string, content : string) => Promise<ParsedFile>
 
@@ -49,11 +44,12 @@ const defaultConfig = {
   output: "build" as string,
   template: "template.html" as string,
   htmlExtensions: [".html", ".htm"],
-  ignoreExtensions: [".sass", ".scss"] as string[],
+  ignoreExtensions: [".sass", ".scss", ".pug"] as string[],
   passThrough: [],
   devServerOptions: { ui: false, notify: false } as Options,
   sassOptions: {style: "compressed"},
   markdownOptions: {},
+  pugOptions: {} as import('pug').Options,
   plugins: [] as (FilesPlugin | FilesParser)[],
   verbose: false as boolean
 }
@@ -150,6 +146,30 @@ const start = async (config2? : Partial<Config>) => {
     
     const templateMap = new Map<string, string>()
 
+    const parsePlugin = async (plugin : FilesPlugin, context : Context, file : string, content : string) => {
+      if(!usePlugin(plugin, file)) return content
+
+      let actions = await plugin.parse(context, file, content)
+      if(!Array.isArray(actions)) actions = [actions]
+
+      let parsedContent = content
+
+      for (const parsed of actions) {
+        if(typeof parsed === 'string') {
+          parsedContent = parsed
+        } else if('content' in parsed) {
+          allFiles.set(parsed.file, parsed.content.toString())
+          allFiles.delete(file)
+        } else if(parsed.action == 'remove') {
+          allFiles.delete(parsed.file)
+        } else {
+          throw new Error('Unknown parsed value for ' + file + ': ' + parsed)
+        }  
+      }
+
+      return parsedContent
+    }  
+
     // Generate template map (dir => template)
     for (const file of allFiles.keys()) {
       const templatePath = path.dirname(file)
@@ -163,22 +183,18 @@ const start = async (config2? : Partial<Config>) => {
       let templateContent = await fs.readFile(file, {encoding: 'utf8'})
 
       for (const plugin of plugins) {
-        if(!usePlugin(plugin, file)) continue
-
-        const parsed = await plugin.parse(context, file, templateContent)
-        if(typeof parsed !== 'string') continue
-
-        templateContent = parsed
+        templateContent = await parsePlugin(plugin, context, file, templateContent)
       }
 
       templateMap.set(templatePath, templateContent)
-              
+      
+      // Check if template output differs, if so update its output file
       let currentTemplate = null
       if(!templateChanged) {
         try {
           currentTemplate = await fs.readFile(templateOutputFile, {encoding: 'utf8'})
         } catch(e) {
-          
+          // Couldn't read file, so it probably doesn't exist
         }
       }
   
@@ -204,26 +220,10 @@ const start = async (config2? : Partial<Config>) => {
       context.parser.template = templateFor(file)
 
       let content = allFiles.get(file) || await fs.readFile(file, {encoding: 'utf8'})
-  
+
+      // Run file content through plugins
       for (const plugin of plugins2) {
-        if(!usePlugin(plugin, file)) continue
-
-        const parsed = await plugin.parse(context, file, content)
-
-        if(typeof parsed === 'string') {
-          content = parsed
-        } else if(Array.isArray(parsed)) {
-          // TODO: Multiple file actions
-        } else if('content' in parsed) {
-          allFiles.set(parsed.file, parsed.content.toString())
-          allFiles.delete(file)
-        } else if(parsed.action == 'remove') {
-          allFiles.delete(parsed.file)
-        } else if(parsed.action == 'keep') {
-          // Pass through unmodified to the next plugin, or just copy at the end
-        } else {
-          throw new Error('Unknown parsed value for ' + file + ': ' + parsed)
-        }  
+        content = await parsePlugin(plugin, context, file, content)
       }
 
       if(allFiles.has(file))
@@ -233,7 +233,7 @@ const start = async (config2? : Partial<Config>) => {
     const ignoreFile = hasExtension(config.ignoreExtensions)
     
     for (const file of allFiles.keys()) {
-      if(passThroughFiles.has(file) || ignoreFile(file) || !willUsePlugin(file)) continue
+      if(passThroughFiles.has(file) || !willUsePlugin(file)) continue
       await parseFile(file)
     }
     

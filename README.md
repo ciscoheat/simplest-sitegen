@@ -143,6 +143,7 @@ export default {
   devServerOptions: { ui: false, notify: false }, // Extra Browsersync options
   sassOptions: { style: "compressed" }, // Extra sass options
   markdownOptions: {}, // Extra markdown-it options
+  pugOptions: {}, // Extra pug options
   plugins: [], // Will be documented on popular request
   verbose: false
 }
@@ -151,6 +152,7 @@ export default {
 - Browsersync options are listed [here](https://browsersync.io/docs/options)
 - Sass options are listed [here](https://sass-lang.com/documentation/js-api/interfaces/Options)
 - Markdown-it options are listed [here](https://www.npmjs.com/package/markdown-it#init-with-presets-and-options)
+- Pug options are listed [here](https://pugjs.org/api/reference.html)
 - Glob patterns are available [here](https://github.com/mrmlnc/fast-glob#pattern-syntax).
 
 ## Any limitations?
