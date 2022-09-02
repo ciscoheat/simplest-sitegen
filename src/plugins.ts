@@ -56,10 +56,10 @@ export const cacheBust = {
         })
         el.setAttribute(attr, file + '?' + hash(content))
       } catch (e) {
-        log(c.red('Warning: ') + file + ' not found, referenced in ' + srcFile)
+        log(c.red('Warning: ') + c.magenta(file) + ' not found, referenced in ' + c.magenta(srcFile))
       }
     }
-
+    
     return root.toString()
   }
 }

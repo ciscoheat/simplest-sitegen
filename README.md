@@ -113,7 +113,7 @@ title: Simplest
 # The simplest site generator is finally here!
 ```
 
-Just be aware that it's unspecified which file will take precedence when only the extension differ. So having an `index.html` in the same directory as `index.md` will probably cause trouble.
+Just be aware that it's unspecified which file will take precedence when only the extension differ. So having an `index.html` in the same directory as `index.md` will probably cause trouble. A warning will be issued if that's the case.
 
 ## ...can I use Pug too?
 
