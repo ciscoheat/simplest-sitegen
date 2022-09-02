@@ -31,6 +31,7 @@
   <li><b><?php echo $char ?>:</b> Php works</li>
 <?php endforeach; ?>
 </ul>
+<img src="/img/test.png?1czjh4l">
 
   </main>
   

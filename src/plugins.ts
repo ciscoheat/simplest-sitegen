@@ -21,6 +21,7 @@ const resolvePath = (url : string, basePath : string, srcFile : string) => {
 
 const cssScripts = (root : ReturnType<typeof parse>) => srcScripts(root, 'link', 'href')
 const jsScripts = (root : ReturnType<typeof parse>) => srcScripts(root, 'script', 'src')
+const imgLinks = (root : ReturnType<typeof parse>) => srcScripts(root, 'img', 'src')
 
 const srcScripts = (root : ReturnType<typeof parse>, selector : string, attr : string) => {
   return root.querySelectorAll(selector)
@@ -39,7 +40,7 @@ const html = ['.html', '.htm']
 export const cacheBust = {
   parse: async (context : Context, srcFile : string, content : string) => {
     const root = parse(content, {comment: true})
-    const scriptFiles = cssScripts(root).concat(jsScripts(root))
+    const scriptFiles = cssScripts(root).concat(jsScripts(root)).concat(imgLinks(root))
       .filter(f => !f.file.includes('?'))
       .filter(f => !isAbsolute(f.file))
 

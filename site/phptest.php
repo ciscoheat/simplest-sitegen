@@ -6,4 +6,5 @@
   <li><b><?php echo $char ?>:</b> Php works</li>
 <?php endforeach; ?>
 </ul>
+<img src="/img/test.png">
 <!-- /build:content -->
