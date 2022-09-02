@@ -1,7 +1,6 @@
 import path from 'upath'
 import fs from 'fs-extra'
 import { parse, type HTMLElement } from 'node-html-parser'
-import { compile } from 'sass'
 import c from 'ansi-colors'
 import matter from 'gray-matter'
 import md from 'markdown-it'
@@ -66,7 +65,7 @@ export const cacheBust = {
 
 /////////////////////////////////////////////////////////////////////
 
-let sass : typeof compile
+let sass : typeof import('sass').compile
 
 export const compileSass = {
   parse: async (context : Context, srcFile : string, content : string) => {
@@ -121,6 +120,32 @@ export const markdown = {
     return {
       file: path.changeExt(file, '.html'), 
       content: vars.join("\n") + `\n<!-- build:content -->${parsed}<!-- /build:content -->`
+    }
+  }
+}
+
+/////////////////////////////////////////////////////////////////////
+
+let pug: typeof import("pug")
+
+export const compilePug = {
+  extensions: ['.pug'],
+  parse: async (context : Context, file : string, content : string) => {
+    if(!pug) pug = (await import('pug')).default
+
+    // Parse all top-level variable definitions as template vars
+    const line = /^-\s+(?:const|var|let)\s+([a-zA-Z_$][a-zA-Z_$0-9]*)\s+=(.*)$/igm
+    const matches = content.matchAll(line)
+
+    const vars = Array.from(matches).map(
+      match => `<!-- build:${match[1]} -->${JSON.parse(match[2])}<!-- /build:${match[1]} -->`
+    ) 
+
+    const output = pug.render(content)
+
+    return {
+      file: path.changeExt(file, '.html'), 
+      content: vars.join("\n") + `\n<!-- build:content -->${output}<!-- /build:content -->`
     }
   }
 }

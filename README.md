@@ -89,7 +89,7 @@ All links and scripts relative to the site, for example `/script.js` or `../css/
 
 ## Sass compilation included as well
 
-with a simple `(p)npm i sass`, you can now use [Sass](https://sass-lang.com/) instead of css in your html files. It's a ridiculously simple drop-in replacement:
+You can use [Sass](https://sass-lang.com/) instead of css in your html files. It's a ridiculously simple drop-in replacement:
 
 ```html
 <link rel="stylesheet" href="/style.scss">
@@ -114,6 +114,19 @@ title: Simplest
 ```
 
 Just be aware that it's unspecified which file will take precedence when only the extension differ. So having an `index.html` in the same directory as `index.md` will probably cause trouble.
+
+## ...can I use Pug too?
+
+[Pug](https://pugjs.org/) is a template language in the spirit of simplicity, so yes, it can be used:
+
+**src/index.pug**
+```pug
+- const title = "Simplest"
+
+h1 The simplest site generator is finally here!
+```
+
+Any top-level unbuffered code (a line starting with `-`) will be parsed into a corresponding `<!-- build:VAR -->` comment block.
 
 ## Configuration
 

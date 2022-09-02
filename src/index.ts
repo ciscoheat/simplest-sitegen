@@ -10,7 +10,7 @@ import { Stats } from 'fs'
 import { Options } from 'browser-sync'
 
 import { log } from './utils.js'
-import { cacheBust, compileSass, htmlFiles, markdown } from './plugins.js'
+import { cacheBust, compileSass, htmlFiles, markdown, compilePug } from './plugins.js'
 
 interface Rename {
   file: string
@@ -265,7 +265,7 @@ const start = async (config2? : Partial<Config>) => {
   const run = async () => {
     await parseAllFiles(
       config.plugins.concat([ 
-        markdown, compileSass, cacheBust, htmlFiles 
+        markdown, compilePug, compileSass, cacheBust, htmlFiles 
       ]).map(setExtension)
     )
   }
