@@ -71,7 +71,7 @@ cd new-project
 npx simplest build
 ```
 
-This will generate your brand new site in the `build` directory, that can be uploaded directly to any host. For more pages and files, just add them in `src` in any folder structure, and they will be copied over to the correct dir. It's up to you to link to them correctly, create a nice navigation in `template.html`, etc, but that's quick and easy compared to plowing through the documentation of any other "simpler" site generator out there.
+This will generate your brand new site in the `build` directory, that can be uploaded directly to any host. For more pages and files, just add them in `src` in any folder structure, and they will be copied over to the correct dir. It's up to you to link to them correctly, create a nice navigation in `template.html`, etc, but that's quick and easy compared to plowing through the documentation of any other "simpler" site generator out there. Just include your favorite css framework, and you should be good to go.
 
 ## It has a Dev server, of course
 
@@ -85,7 +85,7 @@ This will start a [Browsersync](https://browsersync.io/) server, and open up a b
 
 ## Cache busting included
 
-All links and scripts relative to the site, for example `/script.js` or `../css/style.css` (but not `https://example.com/script.js`), will be automatically cache-busted based on its content, so you don't have to worry about serving old scripts and styles.
+All links, scripts and images relative to the site, for example `/script.js` or `../css/style.css` (but not `https://example.com/script.js`), will be automatically cache-busted, so you don't have to worry about serving old content. You will also get a warning if a file doesn't exist.
 
 ## Sass compilation included as well
 
@@ -157,11 +157,11 @@ export default {
 
 ## Any limitations?
 
-Sure, if you want to use a framework like Svelte, Vue, etc, you're better off using [Vite](https://vitejs.dev/). And if you want more advanced CMS/blog features with advanced templating, look at the [jamstack generators](https://jamstack.org/generators/) again. But for non-complicated sites it should be fine, and you can even add some CMS capabilities with a [headless CMS](https://jamstack.org/headless-cms/).
+Sure, if you want to use a framework like Svelte, Vue, etc, you're better off using [Vite](https://vitejs.dev/). And if you want a more complete CMS/blog with advanced templating, look at the [jamstack generators](https://jamstack.org/generators/) again. But for non-complicated sites it should be fine, and you can even add some CMS capabilities with a [headless CMS](https://jamstack.org/headless-cms/).
 
 ## Server-side power with PHP
 
-Since PHP webhosting is cheap and easy, you can add quite a powerful server-side capability to the site by parsing PHP files, while using the built-in PHP dev server to keep the hot reload capabilities. Configure it like this:
+Since PHP webhosting is cheap and easy, you can add powerful server-side capabilities to the site by parsing PHP files, while using the built-in PHP dev server to keep the hot reload capabilities. Configure it like this:
 
 **simplest.config.js**
 
