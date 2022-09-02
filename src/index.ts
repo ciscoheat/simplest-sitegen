@@ -132,20 +132,6 @@ const start = async (config2? : Partial<Config>) => {
     const passThroughFiles = new Set(await fg(config.passThrough.map(glob => path.join(config.input, glob))))
     const allFiles = new Map<string, string>(fileList.map(f => [f, NOT_PARSED]))
 
-    // Issue a warning if files only differ by extension
-    {
-      const duplicate = new Map()
-      for (const file of allFiles.keys()) {
-        const name = path.trimExt(file)
-        if(duplicate.has(name))
-          log(c.red('Warning:') + ` ${c.magenta(file)} and ${c.magenta(duplicate.get(name))} exists in the same directory and could overwrite each other`)
-        else {
-          duplicate.set(name, file)
-        }
-      }
-    }
-
-
     const plugins2 = [...plugins]
 
     const outputFileName = (file : string) => path.join(config.output, file.slice(config.input.length))
@@ -159,6 +145,24 @@ const start = async (config2? : Partial<Config>) => {
     
     const templateMap = new Map<string, string>()
 
+    /////////////////////////////////////////////////////////////////
+
+    // Issue a warning if files only differ by extension
+    {      
+      const duplicate = new Map()
+      for (const file of allFiles.keys()) {
+        if(passThroughFiles.has(file)) continue
+        if(!willUsePlugin(file)) continue
+        
+        const name = path.trimExt(file)
+        if(duplicate.has(name))
+          log(c.red('Warning:') + ` ${c.magenta(file)} and ${c.magenta(duplicate.get(name))} exists in the same directory and could overwrite each other`)
+        else {
+          duplicate.set(name, file)
+        }
+      }
+    }
+    
     const parsePlugin = async (plugin : FilesPlugin, context : Context, file : string, content : string) => {
       if(!usePlugin(plugin, file)) return content
 
