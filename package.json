@@ -1,6 +1,6 @@
 {
   "name": "simplest-sitegen",
-  "version": "0.12.10",
+  "version": "0.12.11",
   "author": "Andreas Söderlund <ciscoheat@gmail.com> (https://blog.encodeart.dev)",
   "description": "The simplest static sitegen there is. Build a modern, fully working website with only HTML.",
   "repository": {

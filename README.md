@@ -171,7 +171,7 @@ export default {
   devServerOptions: { 
     ui: false, notify: false, 
     server: undefined, 
-    proxy: "127.0.0.1:3001" 
+    proxy: "127.0.0.1:3500" 
   }
 }
 ```
@@ -179,7 +179,7 @@ export default {
 Then start the `php` dev server (make sure [PHP is installed](https://www.php.net/downloads.php) on your system first):
 
 ```
-php -S 127.0.0.1:3001 -t build
+php -S 127.0.0.1:3500 -t build
 ```
 
 With this, you can start using PHP files! Start `npx simplest` to confirm that the Browsersync proxy works, then replace `src/index.html` with this file to test:

@@ -159,7 +159,7 @@ export const compilePug = {
     if(!pug) pug = (await import('pug')).default
 
     // Parse all top-level variable definitions as template vars
-    const line = /^-\s+(?:const|var|let)\s+([a-zA-Z_$][a-zA-Z_$0-9]*)\s+=(.*)$/igm
+    const line = /^-\s+(?:const|var|let)\s+([a-zA-Z_$][a-zA-Z_$0-9]*)\s+=(.*)$/gm
     const matches = content.matchAll(line)
 
     const vars = Array.from(matches).map(

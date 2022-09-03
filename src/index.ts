@@ -102,11 +102,6 @@ const start = async (config2? : Partial<Config>) => {
     templateFile: baseTemplate
   }) as HtmlParser
 
-  const context = {
-    config,
-    parser
-  }
-
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   const isNewer = async (src : string, dest : string) => {
@@ -126,6 +121,11 @@ const start = async (config2? : Partial<Config>) => {
   ///////////////////////////////////////////////////////////
 
   const parseAllFiles = async (plugins : FilesPlugin[]) => {
+    const context = {
+      config,
+      parser
+    }
+      
     const NOT_PARSED = ''
 
     const fileList = await fg(path.join(config.input, `/**/*.*`))    
@@ -163,7 +163,7 @@ const start = async (config2? : Partial<Config>) => {
       }
     }
     
-    const parsePlugin = async (plugin : FilesPlugin, context : Context, file : string, content : string) => {
+    const parsePlugin = async (plugin : FilesPlugin, file : string, content : string) => {
       if(!usePlugin(plugin, file)) return content
 
       let actions = await plugin.parse(context, file, content)
@@ -200,7 +200,7 @@ const start = async (config2? : Partial<Config>) => {
       let templateContent = await fs.readFile(file, {encoding: 'utf8'})
 
       for (const plugin of plugins) {
-        templateContent = await parsePlugin(plugin, context, file, templateContent)
+        templateContent = await parsePlugin(plugin, file, templateContent)
       }
 
       templateMap.set(templatePath, templateContent)
@@ -240,7 +240,7 @@ const start = async (config2? : Partial<Config>) => {
 
       // Run file content through plugins
       for (const plugin of plugins2) {
-        content = await parsePlugin(plugin, context, file, content)
+        content = await parsePlugin(plugin, file, content)
       }
 
       if(allFiles.has(file)) {
@@ -288,12 +288,12 @@ const start = async (config2? : Partial<Config>) => {
     )
   }
 
-  return {context, run}
+  return {config, run}
 }
 
 export const simplestBuild = async (config? : Partial<Config>) => {
   const build = await start(config)
-  const config2 = build.context.config
+  const config2 = build.config
   await fs.remove(config2.output)
 
   return build.run()
@@ -301,7 +301,7 @@ export const simplestBuild = async (config? : Partial<Config>) => {
 
 export const simplestWatch = async (config? : Partial<Config>) => {
   const build = await start(config)
-  const config2 = build.context.config
+  const config2 = build.config
 
   const runWatch = (file : string, root : string, stat : Stats) => {
     log('Updated: ' + file)
@@ -327,7 +327,7 @@ export const simplestWatch = async (config? : Partial<Config>) => {
 export const simplestDev = async (config? : Partial<Config>) => {
   log('Starting dev server')
   const build = await start(config)
-  const config2 = build.context.config
+  const config2 = build.config
 
   await fs.ensureDir(config2.output)
   await simplestWatch(config)
