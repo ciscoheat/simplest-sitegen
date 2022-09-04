@@ -128,6 +128,21 @@ h1 The simplest site generator is finally here!
 
 Any top-level unbuffered code (a line starting with `-`) will be parsed into a corresponding `<!-- build:VAR -->` comment block.
 
+## But not Svelte, right?
+
+Using [Svelte](https://svelte.dev/) components is far away from keeping things simple, right? Well, maybe not if you're looking for some sporadic client-side interactivity, then a Svelte component really makes things simple. Here's the start page representation:
+
+**src/index.svelte**
+```svelte
+<script>
+	export const title = "Simplest"
+</script>
+
+<h1>The simplest site generator is finally here!</h1>
+```
+
+All **export const** variables will be used in the template. And unfortunately, there cannot be any nested components. The reason is technical, but let's say for now that nested components wouldn't be simple enough. :)
+
 ## Configuration
 
 If you need to complicate things, it's understandable, things aren't always as simple as one would like. Fortunately it's not too hard to configure simplest. Create a `simplest.config.js` file in your project top directory, with any of the following properties:

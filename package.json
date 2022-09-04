@@ -1,6 +1,6 @@
 {
   "name": "simplest-sitegen",
-  "version": "0.12.11",
+  "version": "0.12.12",
   "author": "Andreas Söderlund <ciscoheat@gmail.com> (https://blog.encodeart.dev)",
   "description": "The simplest static sitegen there is. Build a modern, fully working website with only HTML.",
   "repository": {
@@ -44,6 +44,7 @@
     "sane": "^5.0.1",
     "sass": "^1.54.8",
     "svelte": "^3.50.0",
+    "temp": "^0.9.4",
     "template-html": "^0.3.2",
     "terser": "^5.15.0",
     "upath": "^2.0.1"
@@ -59,6 +60,7 @@
     "@types/node": "^18.7.14",
     "@types/pug": "^2.0.6",
     "@types/sane": "^2.0.1",
+    "@types/temp": "^0.9.1",
     "diff": "^5.1.0",
     "dir-compare": "^4.0.0",
     "ts-node": "^10.9.1",

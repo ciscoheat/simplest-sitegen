@@ -14,6 +14,9 @@ import node_modules from 'node_modules-path'
 import { compile as svelte, CompileOptions } from 'svelte/compiler'
 import { minify } from 'terser'
 import { pathToFileURL } from 'url'
+import debug from 'debug'
+
+const d = debug('simplest:plugins')
 
 const isAbsolute = (url : string) => /^(?:[a-z+]+:)?\/\//i.test(url)
 
@@ -134,10 +137,12 @@ export const compileSass = {
 
 /////////////////////////////////////////////////////////////////////
 
+const replaceComment = /<!-- build:\w+ -->/g
+
 export const htmlFiles = {
   parse: async (context : Context, file : string, content : string) => {
     return content.includes('<!-- /build:content -->')
-      ? context.parser.processContent(content)
+      ? context.parser.processContent(content).replaceAll(replaceComment, '')
       : content
   }
 }
@@ -188,7 +193,6 @@ let svelteRuntimeHash = ''
 export const compileSvelte = {
   extensions: ['.svelte'],
   parse: async (context : Context, file : string, content : string) => {
-
     const compile = (svelteContent : string, generate : 'dom' | 'ssr', newOptions : CompileOptions = {}) => {
       const options = {
         format: 'esm',
@@ -198,7 +202,12 @@ export const compileSvelte = {
         css: false
       }
 
-      return svelte(svelteContent, Object.assign({}, options, newOptions))
+      try {
+        return svelte(svelteContent, Object.assign({}, options, newOptions))
+      } catch(e) {
+        log(`Error: Svelte compilation failed for ${c.magenta(file)}. There cannot be any import statements in a component.`)
+        throw e
+      }
     }
 
     const minifyOptions = {
@@ -217,12 +226,12 @@ export const compileSvelte = {
     }
 
     // Render SSR component
-    const tempFile = file + '.temp.js'
     const compiledSSR = compile(content, 'ssr')
     let compiledSSRoutput : {
       html: string,
       css: { code: string }
     }
+    const tempFile = file + '.temp.js'
     try {
       // Save it to a temporary file and render it
       await fs.outputFile(tempFile, compiledSSR.js.code)
@@ -235,23 +244,24 @@ export const compileSvelte = {
       await fs.remove(tempFile)
     }
 
-    // Compile and output client-side component with the generated SSR
+    // Compile and output client-side component together with the generated SSR
     const compiledDOM = compile(content, 'dom')
 
-    const componentId = 'simplest-svelte-component'
-    const code = (compiledDOM.js.code) as string
-    const jsOutput = code
+    let jsOutput = ((compiledDOM.js.code) as string)
       .replace(
         'from "svelte/internal"', 
         `from "/js/svelte.js?${svelteRuntimeHash}"`
       )
-      .replace(
-        'export default Component;', 
-        `new Component({
-          target: document.getElementById("${componentId}"),
-          hydrate: true
-        });`
-      )
+
+    const componentId = 'simplest-svelte-component'
+
+    jsOutput = jsOutput.replace(
+      'export default Component;', 
+      `new Component({
+        target: document.getElementById("${componentId}"),
+        hydrate: true
+      });`
+    )
 
     let vars
     {
