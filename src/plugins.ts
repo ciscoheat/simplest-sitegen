@@ -5,14 +5,15 @@ import c from 'ansi-colors'
 import matter from 'gray-matter'
 import md from 'markdown-it'
 
-import { log } from './utils.js'
-import { isNewer, type Context } from './index.js'
+import { log, isNewer } from './utils.js'
+import { type Context } from './index.js'
 import { hash } from './utils.js'
 // @ts-ignore
 import node_modules from 'node_modules-path'
 
-import { compile as svelte } from 'svelte/compiler'
+import { compile as svelte, CompileOptions } from 'svelte/compiler'
 import { minify } from 'terser'
+import { pathToFileURL } from 'url'
 
 const isAbsolute = (url : string) => /^(?:[a-z+]+:)?\/\//i.test(url)
 
@@ -182,59 +183,89 @@ export const compilePug = {
 
 /////////////////////////////////////////////////////////////////////
 
-let svelteRuntimeCopied = false
+let svelteRuntimeHash = ''
 
 export const compileSvelte = {
   extensions: ['.svelte'],
   parse: async (context : Context, file : string, content : string) => {
-    // TODO: Add SSR as well
-    const compiled = svelte(content, {
-      format: 'esm',
-      generate: 'dom',
-      hydratable: false,
-      enableSourcemap: false,
-      preserveComments: false,
-      css: false
-    })
 
-    const exports = /^\s*export\s+const\s+([a-zA-Z_$][a-zA-Z_$0-9]*)\s+=(.*?);?$/gm
-    const matches = content.matchAll(exports)
+    const compile = (svelteContent : string, generate : 'dom' | 'ssr', newOptions : CompileOptions = {}) => {
+      const options = {
+        format: 'esm',
+        generate,
+        hydratable: true,
+        enableSourcemap: false,
+        css: false
+      }
 
-    const vars = Object.fromEntries(Array.from(matches).map(m => [m[1], JSON.parse(m[2])]))
+      return svelte(svelteContent, Object.assign({}, options, newOptions))
+    }
+
     const minifyOptions = {
       module: true,
       keep_classnames: true
     }
 
-    let hashSum = ''
-    if(!svelteRuntimeCopied) {
+    if(!svelteRuntimeHash) {
       const source = path.resolve(node_modules('svelte'), 'svelte', 'internal', 'index.mjs')
       const dest = path.resolve(context.config.output, 'js', 'svelte.js')
       const sourceContent = await fs.readFile(source, {encoding: "utf8"})
       const minified = (await minify(sourceContent, minifyOptions)).code!
 
-      hashSum = hash(minified)
+      svelteRuntimeHash = hash(minified)
       await fs.outputFile(dest, minified)
-
-      svelteRuntimeCopied = true
     }
-    
-    const code = (compiled.js.code) as string
+
+    // Render SSR component
+    const tempFile = file + '.temp.js'
+    const compiledSSR = compile(content, 'ssr')
+    let compiledSSRoutput : {
+      html: string,
+      css: { code: string }
+    }
+    try {
+      // Save it to a temporary file and render it
+      await fs.outputFile(tempFile, compiledSSR.js.code)
+      const url = pathToFileURL(tempFile).toString()
+      const module = (await import(url)).default
+      compiledSSRoutput = module.render()
+    } catch(e) {
+      throw e
+    } finally {
+      await fs.remove(tempFile)
+    }
+
+    // Compile and output client-side component with the generated SSR
+    const compiledDOM = compile(content, 'dom')
+
+    const componentId = 'simplest-svelte-component'
+    const code = (compiledDOM.js.code) as string
     const jsOutput = code
       .replace(
         'from "svelte/internal"', 
-        `from "/js/svelte.js?${hashSum}"`
+        `from "/js/svelte.js?${svelteRuntimeHash}"`
       )
       .replace(
         'export default Component;', 
-        'new Component({target: document.getElementById("simplest-svelte-component")});'
+        `new Component({
+          target: document.getElementById("${componentId}"),
+          hydrate: true
+        });`
       )
 
+    let vars
+    {
+      const exports = /^\s*export\s+const\s+([a-zA-Z_$][a-zA-Z_$0-9]*)\s+=(.*?);?$/gm
+      const matches = content.matchAll(exports)
+
+      vars = Object.fromEntries(Array.from(matches).map(m => [m[1], JSON.parse(m[2])]))
+    }
+  
     return {
       file: path.changeExt(file, '.html'), 
       content: toHtmlTemplate(vars, `
-        <style>${compiled.css.code}</style>
-        <div id="simplest-svelte-component"></div>
+        <style>${compiledSSRoutput.css.code}</style>
+        <div id="${componentId}">${compiledSSRoutput.html}</div>
         <script type="module">${(await minify(jsOutput, minifyOptions)).code}</script>
       `)
     }

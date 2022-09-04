@@ -25,9 +25,12 @@
 
   <main class="container">
     
-        <style>div.svelte-1qh9h6c.svelte-1qh9h6c{width:100%;height:400px;background-color:aquamarine}div.svelte-1qh9h6c .text.svelte-1qh9h6c{font-style:italic}</style>
-        <div id="simplest-svelte-component"></div>
-        <script type="module">import{SvelteComponent as t,append as e,attr as s,detach as n,element as o,init as c,insert as l,listen as i,noop as r,safe_not_equal as m,set_data as u,space as x,text as h}from"/js/svelte.js?a410ss";function v(t){let c,m,v,a,d,p,y,f,g,$,j=t[1].x+"",q=t[1].y+"";return{c(){c=o("h2"),c.textContent=`${t[0]}`,m=x(),v=o("div"),a=o("div"),d=h("The mouse is at "),p=h(j),y=h(" x "),f=h(q),s(a,"class","text svelte-1qh9h6c"),s(v,"class","svelte-1qh9h6c")},m(s,n){l(s,c,n),l(s,m,n),l(s,v,n),e(v,a),e(a,d),e(a,p),e(a,y),e(a,f),g||($=i(v,"mousemove",t[2]),g=!0)},p(t,[e]){2&e&&j!==(j=t[1].x+"")&&u(p,j),2&e&&q!==(q=t[1].y+"")&&u(f,q)},i:r,o:r,d(t){t&&n(c),t&&n(m),t&&n(v),g=!1,$()}}}function a(t,e,s){let n={x:0,y:0};return["Svelte test",n,function(t){s(1,n.x=t.clientX,n),s(1,n.y=t.clientY,n)}]}new class Component extends t{constructor(t){super(),c(this,t,a,v,m,{title:0})}get title(){return this.$$.ctx[0]}}({target:document.getElementById("simplest-svelte-component")});</script>
+        <style>.box.svelte-tcxy2u.svelte-tcxy2u{width:100%;height:400px;background-color:aquamarine}.box.svelte-tcxy2u .text.svelte-tcxy2u{font-style:italic}</style>
+        <div id="simplest-svelte-component"><h2>Svelte test</h2>
+
+<div class="box svelte-tcxy2u"><div class="text svelte-tcxy2u">The mouse is at 0 x 0</div>
+</div></div>
+        <script type="module">import{SvelteComponent as t,append_hydration as e,attr as s,children as c,claim_element as o,claim_space as n,claim_text as l,detach as r,element as i,init as a,insert_hydration as h,listen as u,noop as m,safe_not_equal as x,set_data as v,space as y,text as d}from"/js/svelte.js?a410ss";function f(t){let a,x,f,p,E,g,I,j,D,T,V,$=t[1].x+"",b=t[1].y+"";return{c(){a=i("h2"),x=d(t[0]),f=y(),p=i("div"),E=i("div"),g=d("The mouse is at "),I=d($),j=d(" x "),D=d(b),this.h()},l(e){a=o(e,"H2",{});var s=c(a);x=l(s,t[0]),s.forEach(r),f=n(e),p=o(e,"DIV",{class:!0});var i=c(p);E=o(i,"DIV",{class:!0});var h=c(E);g=l(h,"The mouse is at "),I=l(h,$),j=l(h," x "),D=l(h,b),h.forEach(r),i.forEach(r),this.h()},h(){s(E,"class","text svelte-tcxy2u"),s(p,"class","box svelte-tcxy2u")},m(s,c){h(s,a,c),e(a,x),h(s,f,c),h(s,p,c),e(p,E),e(E,g),e(E,I),e(E,j),e(E,D),T||(V=u(p,"mousemove",t[2]),T=!0)},p(t,[e]){2&e&&$!==($=t[1].x+"")&&v(I,$),2&e&&b!==(b=t[1].y+"")&&v(D,b)},i:m,o:m,d(t){t&&r(a),t&&r(f),t&&r(p),T=!1,V()}}}function p(t,e,s){let c={x:0,y:0};return["Svelte test",c,function(t){s(1,c.x=t.clientX,c),s(1,c.y=t.clientY,c)}]}new class Component extends t{constructor(t){super(),a(this,t,p,f,x,{title:0})}get title(){return this.$$.ctx[0]}}({target:document.getElementById("simplest-svelte-component"),hydrate:!0});</script>
       
   </main>
   

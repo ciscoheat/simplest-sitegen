@@ -10,17 +10,17 @@
 
 <h2>{title}</h2>
 
-<div on:mousemove={handleMousemove}>
+<div class="box" on:mousemove={handleMousemove}>
 	<div class="text">The mouse is at {m.x} x {m.y}</div>
 </div>
 
 <style>
-	div { 
+	.box { 
 		width: 100%; height: 400px; 
 		background-color: aquamarine;
 	}
 
-	div .text {
+	.box .text {
 		font-style: italic;
 	}
 </style>

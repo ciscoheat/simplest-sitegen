@@ -8,8 +8,9 @@ import c from 'ansi-colors'
 import { cwd } from 'process'
 import { Stats } from 'fs'
 import { Options } from 'browser-sync'
+import { pathToFileURL } from 'url'
 
-import { log } from './utils.js'
+import { log, isNewer } from './utils.js'
 import { cacheBust, compileSass, htmlFiles, markdown, compilePug, compileSvelte } from './plugins.js'
 
 interface Rename {
@@ -63,18 +64,6 @@ export type Context = {
 
 /////////////////////////////////////////////////////////////////////
 
-export const isNewer = async (src : string, dest : string) => {
-  let dest1 : Stats
-  try {
-    dest1 = await fs.stat(dest)
-  } catch(e) {
-    return true
-  }
-
-  const src1 = await fs.stat(src)
-  return src1.mtimeMs > dest1.mtimeMs
-}
-
 const d = debug('simplest')
 
 const start = async (config2? : Partial<Config>) => {
@@ -86,7 +75,7 @@ const start = async (config2? : Partial<Config>) => {
     await fs.access(userConfigFile)
 
     try {
-      const userConfig = await import('file:///' + userConfigFile)
+      const userConfig = await import(pathToFileURL(userConfigFile).toString())
       Object.assign(config, userConfig.default)
     } catch (e) {
       log('Could not import simplest.config.js. Did you add "type": "module" to package.json?')
@@ -304,6 +293,7 @@ export const simplestWatch = async (config? : Partial<Config>) => {
   const config2 = build.config
 
   const runWatch = (file : string, root : string, stat : Stats) => {
+    if(file.endsWith('.temp.js')) return
     log('Updated: ' + file)
     build.run()
   }
@@ -316,6 +306,7 @@ export const simplestWatch = async (config? : Partial<Config>) => {
   watcher.on('change', runWatch)
   watcher.on('add', runWatch)
   watcher.on('delete', (file) => {
+    if(file.endsWith('.temp.js')) return
     log('Deleted: ' + file)
     fs.remove(path.join(config2.output, file))
   })

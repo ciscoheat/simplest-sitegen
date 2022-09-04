@@ -1,4 +1,5 @@
 import c from 'ansi-colors'
+import fs, { Stats } from 'fs-extra'
 
 /**
  * Hash using djb2
@@ -19,4 +20,16 @@ import c from 'ansi-colors'
 export const log = (value : string) => {
 	value = `[${c.blueBright('simplest')}] ${value}`
 	console.log(process.stdout.isTTY ? value : c.unstyle(value))
+}
+
+export const isNewer = async (src : string, dest : string) => {
+  let dest1 : Stats
+  try {
+    dest1 = await fs.stat(dest)
+  } catch(e) {
+    return true
+  }
+
+  const src1 = await fs.stat(src)
+  return src1.mtimeMs > dest1.mtimeMs
 }
