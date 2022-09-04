@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Svelte test</title>
+  <link rel="stylesheet" href="/CSS/chota.min.css?glxzhr">
+  <link rel="stylesheet" href="/CSS/fulloo.css?1dpkm1x">
+  <!-- build:styles -->
+</head>
+<body>
+  <nav class="nav hide-pr" id="tabs">
+    <div class="nav-center">
+      <a href="/">Home</a>
+      <a href="/Introduction/">Introduction</a>
+      <a href="/FAQ/">FAQ</a>
+      <a href="/Documents/">Documents</a>
+      <a href="/Examples/">Examples</a>
+      <a href="/Downloads/">Downloads</a>
+      <a href="/Events/">Events</a>
+      <a href="/oowiki.php">Wiki</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    
+        <style>div.svelte-1qh9h6c.svelte-1qh9h6c{width:100%;height:400px;background-color:aquamarine}div.svelte-1qh9h6c .text.svelte-1qh9h6c{font-style:italic}</style>
+        <div id="simplest-svelte-component"></div>
+        <script type="module">import{SvelteComponent as t,append as e,attr as s,detach as n,element as o,init as c,insert as l,listen as i,noop as r,safe_not_equal as m,set_data as u,space as x,text as h}from"/js/svelte.js?a410ss";function v(t){let c,m,v,a,d,p,y,f,g,$,j=t[1].x+"",q=t[1].y+"";return{c(){c=o("h2"),c.textContent=`${t[0]}`,m=x(),v=o("div"),a=o("div"),d=h("The mouse is at "),p=h(j),y=h(" x "),f=h(q),s(a,"class","text svelte-1qh9h6c"),s(v,"class","svelte-1qh9h6c")},m(s,n){l(s,c,n),l(s,m,n),l(s,v,n),e(v,a),e(a,d),e(a,p),e(a,y),e(a,f),g||($=i(v,"mousemove",t[2]),g=!0)},p(t,[e]){2&e&&j!==(j=t[1].x+"")&&u(p,j),2&e&&q!==(q=t[1].y+"")&&u(f,q)},i:r,o:r,d(t){t&&n(c),t&&n(m),t&&n(v),g=!1,$()}}}function a(t,e,s){let n={x:0,y:0};return["Svelte test",n,function(t){s(1,n.x=t.clientX,n),s(1,n.y=t.clientY,n)}]}new class Component extends t{constructor(t){super(),c(this,t,a,v,m,{title:0})}get title(){return this.$$.ctx[0]}}({target:document.getElementById("simplest-svelte-component")});</script>
+      
+  </main>
+  
+  <script src="/js/highlight.min.js"></script>
+  <script>
+    // Navigation highlight
+    const current = document.location.pathname
+    document.querySelectorAll('#tabs a').forEach(a => {
+      const tab = new URL(a.href).pathname
+
+      if(tab == current) {
+        a.classList.add('active')
+      }
+    })
+  </script>    
+</body>
+</html>

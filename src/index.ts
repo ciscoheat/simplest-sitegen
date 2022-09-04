@@ -10,7 +10,7 @@ import { Stats } from 'fs'
 import { Options } from 'browser-sync'
 
 import { log } from './utils.js'
-import { cacheBust, compileSass, htmlFiles, markdown, compilePug } from './plugins.js'
+import { cacheBust, compileSass, htmlFiles, markdown, compilePug, compileSvelte } from './plugins.js'
 
 interface Rename {
   file: string
@@ -63,6 +63,18 @@ export type Context = {
 
 /////////////////////////////////////////////////////////////////////
 
+export const isNewer = async (src : string, dest : string) => {
+  let dest1 : Stats
+  try {
+    dest1 = await fs.stat(dest)
+  } catch(e) {
+    return true
+  }
+
+  const src1 = await fs.stat(src)
+  return src1.mtimeMs > dest1.mtimeMs
+}
+
 const d = debug('simplest')
 
 const start = async (config2? : Partial<Config>) => {
@@ -103,18 +115,6 @@ const start = async (config2? : Partial<Config>) => {
   }) as HtmlParser
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  const isNewer = async (src : string, dest : string) => {
-    let dest1 : Stats
-    try {
-      dest1 = await fs.stat(dest)
-    } catch(e) {
-      return true
-    }
-
-    const src1 = await fs.stat(src)
-    return src1.mtimeMs > dest1.mtimeMs
-  }
 
   const hasExtension = (exts : string[]) => (input : string) => exts.some(ext => input.endsWith(`${ext}`))
 
@@ -283,7 +283,7 @@ const start = async (config2? : Partial<Config>) => {
   const run = async () => {
     await parseAllFiles(
       config.plugins.concat([ 
-        markdown, compilePug, compileSass, cacheBust, htmlFiles 
+        markdown, compilePug, compileSass, compileSvelte, cacheBust, htmlFiles 
       ]).map(setExtension)
     )
   }

@@ -32,7 +32,7 @@ import { simplestBuild } from './index.js'
       )
       console.log(colorize(result))
     })
-
+    
     if(problems.length) {
       console.log("====================================================================")
       console.log(problems)

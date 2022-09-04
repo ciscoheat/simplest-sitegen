@@ -6,8 +6,13 @@ import matter from 'gray-matter'
 import md from 'markdown-it'
 
 import { log } from './utils.js'
-import { type Context } from './index.js'
+import { isNewer, type Context } from './index.js'
 import { hash } from './utils.js'
+// @ts-ignore
+import node_modules from 'node_modules-path'
+
+import { compile as svelte } from 'svelte/compiler'
+import { minify } from 'terser'
 
 const isAbsolute = (url : string) => /^(?:[a-z+]+:)?\/\//i.test(url)
 
@@ -33,7 +38,10 @@ const srcScripts = (root : ReturnType<typeof parse>, selector : string, attr : s
     })) as {el: HTMLElement, attr: string, file: string}[]
 }
 
-const html = ['.html', '.htm']
+const toHtmlTemplate = (vars : Record<string, string>, content : string) => 
+  Object.entries(vars).map(([key, value]) => `<!-- build:${key} -->${value}<!-- /build:${key} -->`)
+    .join("\n") + "\n" +
+    `<!-- build:content -->${content}<!-- /build:content -->`
 
 /////////////////////////////////////////////////////////////////////
 
@@ -159,18 +167,76 @@ export const compilePug = {
     if(!pug) pug = (await import('pug')).default
 
     // Parse all top-level variable definitions as template vars
-    const line = /^-\s+(?:const|var|let)\s+([a-zA-Z_$][a-zA-Z_$0-9]*)\s+=(.*)$/gm
+    const line = /^-\s+(?:const|var|let)\s+([a-zA-Z_$][a-zA-Z_$0-9]*)\s+=(.*?);?$/gm
     const matches = content.matchAll(line)
 
-    const vars = Array.from(matches).map(
-      match => `<!-- build:${match[1]} -->${JSON.parse(match[2])}<!-- /build:${match[1]} -->`
-    ) 
-
+    const vars = Object.fromEntries(Array.from(matches).map(m => [m[1], JSON.parse(m[2])]))
     const output = pug.render(content, context.config.pugOptions)
 
     return {
       file: path.changeExt(file, '.html'), 
-      content: vars.join("\n") + `\n<!-- build:content -->${output}<!-- /build:content -->`
+      content: toHtmlTemplate(vars, output)
+    }
+  }
+}
+
+/////////////////////////////////////////////////////////////////////
+
+let svelteRuntimeCopied = false
+
+export const compileSvelte = {
+  extensions: ['.svelte'],
+  parse: async (context : Context, file : string, content : string) => {
+    // TODO: Add SSR as well
+    const compiled = svelte(content, {
+      format: 'esm',
+      generate: 'dom',
+      hydratable: false,
+      enableSourcemap: false,
+      preserveComments: false,
+      css: false
+    })
+
+    const exports = /^\s*export\s+const\s+([a-zA-Z_$][a-zA-Z_$0-9]*)\s+=(.*?);?$/gm
+    const matches = content.matchAll(exports)
+
+    const vars = Object.fromEntries(Array.from(matches).map(m => [m[1], JSON.parse(m[2])]))
+    const minifyOptions = {
+      module: true,
+      keep_classnames: true
+    }
+
+    let hashSum = ''
+    if(!svelteRuntimeCopied) {
+      const source = path.resolve(node_modules('svelte'), 'svelte', 'internal', 'index.mjs')
+      const dest = path.resolve(context.config.output, 'js', 'svelte.js')
+      const sourceContent = await fs.readFile(source, {encoding: "utf8"})
+      const minified = (await minify(sourceContent, minifyOptions)).code!
+
+      hashSum = hash(minified)
+      await fs.outputFile(dest, minified)
+
+      svelteRuntimeCopied = true
+    }
+    
+    const code = (compiled.js.code) as string
+    const jsOutput = code
+      .replace(
+        'from "svelte/internal"', 
+        `from "/js/svelte.js?${hashSum}"`
+      )
+      .replace(
+        'export default Component;', 
+        'new Component({target: document.getElementById("simplest-svelte-component")});'
+      )
+
+    return {
+      file: path.changeExt(file, '.html'), 
+      content: toHtmlTemplate(vars, `
+        <style>${compiled.css.code}</style>
+        <div id="simplest-svelte-component"></div>
+        <script type="module">${(await minify(jsOutput, minifyOptions)).code}</script>
+      `)
     }
   }
 }
