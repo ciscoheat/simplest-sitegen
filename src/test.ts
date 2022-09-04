@@ -6,6 +6,9 @@ import fs from 'fs-extra'
 // @ts-ignore
 import colorize from '@npmcli/disparity-colors'
 import { simplestBuild } from './index.js'
+import minimist from 'minimist'
+
+const args = minimist(process.argv.slice(2), {boolean: true})
 
 ;(async () => {
   await fs.remove("build")
@@ -13,29 +16,34 @@ import { simplestBuild } from './index.js'
 
   const result = await dircompare.compare("expected", "build", {compareContent: true})
   if(!result.same) {
-    console.log(ansi.red('  Test failure'))
-    console.log(ansi.yellow('  ' + result.differences + " difference(s):") + "\n")
 
-    const diffs = result.diffSet!.filter(r => r.state == 'distinct')
-    const problems = result.diffSet!.filter(r => r.state != 'equal' && r.state != 'distinct')
+    if(args.quiet) {
+      console.log(ansi.red('Test failure: ') + ansi.yellow(result.differences + " difference(s)."))
+    } else {
+      console.log(ansi.red('  Test failure'))
+      console.log(ansi.yellow('  ' + result.differences + " difference(s):") + "\n")
+  
+      const diffs = result.diffSet!.filter(r => r.state == 'distinct')
+      const problems = result.diffSet!.filter(r => r.state != 'equal' && r.state != 'distinct')
 
-    diffs.forEach(r => {
-      const test = path.join(r.path1, r.name1)
-      const expected = path.join(r.path2, r.name2)
+      diffs.forEach(r => {
+        const test = path.join(r.path1, r.name1)
+        const expected = path.join(r.path2, r.name2)
 
-      const result = createTwoFilesPatch(
-        expected, test,
-        fs.readFileSync(test, {encoding: 'utf-8'}), 
-        fs.readFileSync(expected, {encoding: 'utf-8'}),
-        undefined, undefined,
-        { context: 0 }
-      )
-      console.log(colorize(result))
-    })
-    
-    if(problems.length) {
-      console.log("====================================================================")
-      console.log(problems)
+        const result = createTwoFilesPatch(
+          expected, test,
+          fs.readFileSync(test, {encoding: 'utf-8'}), 
+          fs.readFileSync(expected, {encoding: 'utf-8'}),
+          undefined, undefined,
+          { context: 0 }
+        )
+        console.log(colorize(result))
+      })
+
+      if(problems.length) {
+        console.log("====================================================================")
+        console.log(problems)
+      }
     }
 
     process.exitCode = 1

@@ -14,6 +14,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "pnpm tsc-watch --noClear --onSuccess \"pnpm test\"",
+    "dev:quiet": "pnpm tsc-watch --noClear --onSuccess \"pnpm test -- --quiet\"",
     "prepublishOnly": "tsc",
     "start": "node dist/cli.js",
     "test": "node dist/test.js",
