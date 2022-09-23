@@ -1,22 +1,12 @@
 # simplest-sitegen
 
-## Do you recognize this:
+**Simplest** is the simplest static sitegen you can find, while still being quite able. It's perfect for smaller websites with just a little dynamic content, and when you want something up fast without diving deep into documentation.
 
-- You are comfortable with html and want to build a relatively simple, modern static site.
-- You look at the [jamstack site generators](https://jamstack.org/generators/) but they always seem a bit too complicated. Too much configuration, too much scaffolding, too many themes, too much documentation.
-- You don't want to get into all that *again*, because you have tested a few of them.
-
-## Don't despair, the solution is in front of you!
-
-Introducing **simplest**. It's true, it really is the simplest static sitegen, while still being quite able. 
-
-Only HTML needed. No markdown, no yaml, no template languages, no huge documentation, and a one-step build process. Create a new project with it immediately:
+The bold claim of being simplest is made because only HTML is needed. No markdown, no yaml, no template languages, no huge documentation, and a one-step build process. Create a new project with it immediately:
 
 ```
 npm create simplest-sitegen
 ```
-
-(If you dislike scaffolding, manual installation instructions is at the end of this document.)
 
 ## No scaffolding except one file: `src/template.html`
 
@@ -71,11 +61,13 @@ cd new-project
 npx simplest build
 ```
 
-This will generate your brand new site in the `build` directory, that can be uploaded directly to any host. For more pages and files, just add them in `src` in any folder structure, and they will be copied over to the correct dir. It's up to you to link to them correctly, create a nice navigation in `template.html`, etc, but that's quick and easy compared to plowing through the documentation of any other "simpler" site generator out there. Just include your favorite css framework, and you should be good to go.
+This will generate your brand new site in the `build` directory, that can be uploaded directly to any host. For more pages and files, just add them in `src` in any folder structure, and they will be copied over to the correct dir. 
+
+It's up to you to link to them correctly, create a nice navigation in `template.html`, etc, but that's quick and easy compared to plowing through the documentation of any other "simpler" site generator out there. Just include your favorite css framework, and you should be good to go.
 
 ## It has a Dev server, of course
 
-We're not done just yet: I'm sure you feel the need for a near-real time hot-reloading supercharged experience when developing your site. It's one of the simplest to use:
+Simplest near-real time hot-reloading dev server is one of the simplest to use:
 
 ```
 npx simplest
@@ -83,13 +75,23 @@ npx simplest
 
 This will start a [Browsersync](https://browsersync.io/) server, and open up a browser window for you. Any changes in `src` will update the browser automatically.
 
+## Multiple templates
+
+You can put a `template.html` in any subdirectory, and all html files in that directory and below will use that template instead of the top-level one.
+
 ## Cache busting included
 
 All links, scripts and images relative to the site, for example `/script.js` or `../css/style.css` (but not `https://example.com/script.js`), will be automatically cache-busted, so you don't have to worry about serving old content. You will also get a warning if a file doesn't exist.
 
-## Sass compilation included as well
+# Extra features
 
-You can use [Sass](https://sass-lang.com/) instead of css in your html files. It's a ridiculously simple drop-in replacement:
+If you're fine with HTML and nothing else, the above is all you need to know. Go and create something beautiful!
+
+But if you're comfortable with web development, there are libraries and tools that makes life easier. Simplest includes some of them. They are purely optional.
+
+## Sass
+
+You can use [Sass](https://sass-lang.com/) instead of css in your html files. It's a ridiculously simple drop-in replacement in your html:
 
 ```html
 <link rel="stylesheet" href="/style.scss">
@@ -97,13 +99,10 @@ You can use [Sass](https://sass-lang.com/) instead of css in your html files. It
 
 Just make sure that the source file is in the correct directory as the output, i.e. `src/css/style.scss` should be linked as `/css/style.scss` in the template.
 
-## Multiple templates
 
-You can put a `template.html` in any subdirectory, and all html files in that directory and below will use that template instead of the top-level one.
+## Markdown
 
-## Great, but I still want to use Markdown
-
-All right, that's simple enough for it to be included. This is the corresponding `.md` file for the index page in the example above:
+Markdown is simple enough for it to be included. This is the corresponding `.md` file for the index page in the example above:
 
 **src/index.md**
 ```
@@ -115,7 +114,7 @@ title: Simplest
 
 Just be aware that it's unspecified which file will take precedence when only the extension differ. So having an `index.html` in the same directory as `index.md` will probably cause trouble. A warning will be issued if that's the case.
 
-## ...can I use Pug too?
+## Pug
 
 [Pug](https://pugjs.org/) is a template language in the spirit of simplicity, so yes, it can be used:
 
@@ -128,20 +127,20 @@ h1 The simplest site generator is finally here!
 
 Any top-level unbuffered code (a line starting with `-`) will be parsed into a corresponding `<!-- build:VAR -->` comment block.
 
-## But not Svelte, right?
+## Svelte!
 
-Using [Svelte](https://svelte.dev/) components is far away from keeping things simple, right? Well, maybe not if you're looking for some sporadic client-side interactivity, then a Svelte component really makes things simple. Here's the start page representation:
+Using [Svelte](https://svelte.dev/) components is far from keeping things simple, right? Well, if you're looking for some sporadic client-side interactivity, a Svelte component makes things quite simple. Here's the start page representation:
 
 **src/index.svelte**
 ```svelte
 <script>
-	export const title = "Simplest"
+  export const title = "Simplest"
 </script>
 
 <h1>The simplest site generator is finally here!</h1>
 ```
 
-All **export const** variables will be used in the template. And unfortunately, there cannot be any nested components. The reason is technical, but let's say for now that nested components wouldn't be simple enough. :)
+All **export const** variables will be used in the template. Unfortunately there cannot be any nested components. The reason is technical, but let's say for now that nested components wouldn't be simple enough. :)
 
 ## Configuration
 
@@ -153,7 +152,7 @@ export default {
   output: "build",
   template: "template.html", // Template file(s) to look for
   htmlExtensions: [".html", ".htm"], // What files to parse for HTML content
-  ignoreExtensions: [".sass", ".scss", ".pug"], // Won't be copied to the output dir
+  sourceExtensions: [".sass", ".scss", ".pug", ".svelte"], // Won't be copied to the output dir
   passThrough: [], // Glob patterns (relative to input dir) that will skip parsing
   devServerOptions: { ui: false, notify: false }, // Extra Browsersync options
   sassOptions: { style: "compressed" }, // Extra sass options
@@ -170,13 +169,9 @@ export default {
 - Pug options are listed [here](https://pugjs.org/api/reference.html)
 - Glob patterns are available [here](https://github.com/mrmlnc/fast-glob#pattern-syntax).
 
-## Any limitations?
-
-Sure, if you want to use a framework like Svelte, Vue, etc, you're better off using [Vite](https://vitejs.dev/). And if you want a more complete CMS/blog with advanced templating, look at the [jamstack generators](https://jamstack.org/generators/) again. But for non-complicated sites it should be fine, and you can even add some CMS capabilities with a [headless CMS](https://jamstack.org/headless-cms/).
-
 ## Server-side power with PHP
 
-Since PHP webhosting is cheap and easy, you can add powerful server-side capabilities to the site by parsing PHP files, while using the built-in PHP dev server to keep the hot reload capabilities. Configure it like this:
+The easiest and cheapest way to add powerful server-side capabilities to Simplest is by parsing PHP files, using the built-in PHP dev server to keep the hot reload capabilities. Configure it like this:
 
 **simplest.config.js**
 
@@ -215,6 +210,14 @@ With this, you can start using PHP files! Start `npx simplest` to confirm that t
 
 If you want to add a PHP framework to the site, exclude it from parsing using the `passThrough` configuration option.
 
+## When not to use Simplest
+
+When your site is more dynamic and data-driven, and you want routing, client-side rendering, etc, you're better of using [SvelteKit](https://kit.svelte.dev/) or [Astro](https://astro.build/).
+
+If your site is mostly static but you want a more complete CMS/blog with advanced templating, look at the [jamstack generators](https://jamstack.org/generators/) again. 
+
+But for non-complicated sites Simplest should be fine, and you can even add some CMS capabilities with a [headless CMS](https://jamstack.org/headless-cms/).
+
 ## If you dislike scaffolding
 
 Here's how to create a project manually:
@@ -222,16 +225,14 @@ Here's how to create a project manually:
 ```
 mkdir new-project
 cd new-project
-npm init es6
+npm init
 npm i simplest-sitegen
 mkdir src
 ```
 
-The `npm init es6` is for `"type": "module"` to be included in the `package.json` file. You can add that line manually and use the normal `npm init` if you want. 
-
 ([pnpm](https://pnpm.io/) is recommended instead of npm though!)
 
-After this, create a `src/template.html` file, and you're set.
+Then add `"type": "module"` to your `package.json` file. Finally, create a `src/template.html` file and you're ready to go.
 
 ## Feedback wanted
 

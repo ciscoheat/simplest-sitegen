@@ -45,7 +45,7 @@ const defaultConfig = {
   output: "build" as string,
   template: "template.html" as string,
   htmlExtensions: [".html", ".htm"],
-  ignoreExtensions: [".sass", ".scss", ".pug"] as string[],
+  sourceExtensions: [".sass", ".scss", ".pug", ".svelte"] as string[],
   passThrough: [],
   devServerOptions: { ui: false, notify: false } as Options,
   sassOptions: {style: "compressed"},
@@ -237,7 +237,6 @@ const start = async (config2? : Partial<Config>) => {
       }
     }
 
-    const ignoreFile = hasExtension(config.ignoreExtensions)
     
     for (const file of allFiles.keys()) {
       if(passThroughFiles.has(file) || !willUsePlugin(file)) continue
@@ -245,6 +244,8 @@ const start = async (config2? : Partial<Config>) => {
     }
     
     // Copy the parsed and remaining files
+    const ignoreFile = hasExtension(config.sourceExtensions)
+
     for (const [file, content] of allFiles) {
       if(content) {
         if(config.verbose) log('Parsed and copied: ' + file)
