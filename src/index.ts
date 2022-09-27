@@ -9,6 +9,7 @@ import { cwd } from 'process'
 import { Stats } from 'fs'
 import { Options } from 'browser-sync'
 import { pathToFileURL } from 'url'
+import { debounce } from 'throttle-debounce'
 
 import { log, isNewer } from './utils.js'
 import { cacheBust, compileSass, htmlFiles, markdown, compilePug, compileSvelte } from './plugins.js'
@@ -271,6 +272,7 @@ const start = async (config2? : Partial<Config>) => {
   }
 
   const run = async () => {
+    //log('=== Build start ===')
     await parseAllFiles(
       config.plugins.concat([ 
         markdown, compilePug, compileSass, compileSvelte, cacheBust, htmlFiles 
@@ -293,10 +295,12 @@ export const simplestWatch = async (config? : Partial<Config>) => {
   const build = await start(config)
   const config2 = build.config
 
+  const runBuild = debounce(100, build.run)
+
   const runWatch = (file : string, root : string, stat : Stats) => {
     if(file.endsWith('.temp.js')) return
     log('Updated: ' + file)
-    build.run()
+    runBuild()
   }
 
   log('Watching for file changes in ' + c.magenta(config2.input))

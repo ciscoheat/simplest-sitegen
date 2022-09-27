@@ -47,6 +47,7 @@
     "temp": "^0.9.4",
     "template-html": "^0.3.2",
     "terser": "^5.15.0",
+    "throttle-debounce": "^5.0.0",
     "upath": "^2.0.1"
   },
   "devDependencies": {
@@ -61,6 +62,7 @@
     "@types/pug": "^2.0.6",
     "@types/sane": "^2.0.1",
     "@types/temp": "^0.9.1",
+    "@types/throttle-debounce": "^5.0.0",
     "diff": "^5.1.0",
     "dir-compare": "^4.0.0",
     "ts-node": "^10.9.1",

@@ -216,7 +216,7 @@ When your site is more dynamic and data-driven, and you want routing, client-sid
 
 If your site is mostly static but you want a more complete CMS/blog with advanced templating, look at the [jamstack generators](https://jamstack.org/generators/) again. 
 
-But for non-complicated sites Simplest should be fine, and you can even add some CMS capabilities with a [headless CMS](https://jamstack.org/headless-cms/).
+But for non-complicated sites where a directory based structure is adequate, Simplest should be fine, and you can even add some CMS capabilities with a [headless CMS](https://jamstack.org/headless-cms/).
 
 ## If you dislike scaffolding
 
